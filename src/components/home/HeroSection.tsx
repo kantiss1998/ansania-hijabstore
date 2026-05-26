@@ -32,111 +32,120 @@ export function HeroSection({ banners }: Props) {
 
   if (!banners.length) return null;
 
-  return (
-    <section className="container-main py-8 z-10 relative">
-      <div
-        className="relative h-[500px] w-full overflow-hidden rounded-3xl bg-gray-900 shadow-2xl md:h-[600px]"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
-            className="absolute inset-0"
-          >
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <motion.div
-              className="absolute inset-0 bg-gray-800"
-              style={{
-                backgroundImage: `url(${banners[currentIndex].imageUrl || "/placeholder-banner.jpg"})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
+  const banner = banners[currentIndex];
 
-            <div className="absolute inset-0 z-20 flex flex-col justify-center px-6 md:px-20">
-              <div className="max-w-2xl flex flex-col gap-6">
-                <motion.div
+  return (
+    <section
+      className="relative w-full h-[100svh] min-h-[560px] max-h-[900px] overflow-hidden bg-dark"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="absolute inset-0"
+        >
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-dark/90 via-dark/35 to-dark/20" />
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${banner.imageUrl || '/placeholder-banner.jpg'})`,
+            }}
+          />
+
+          <div className="absolute inset-0 z-20 flex flex-col justify-end pb-12 sm:pb-16 md:justify-center md:pb-0">
+            <div className="container-main max-w-2xl flex flex-col gap-4 sm:gap-5">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="flex flex-wrap items-center gap-2"
+              >
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-display font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                  <Sparkles className="h-3 w-3 text-accent-lime" />
+                  {banner.subtitle || 'New drop'}
+                </span>
+              </motion.div>
+
+              <motion.h2
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="font-display text-[2rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-black leading-[0.95] tracking-[-0.04em] text-white"
+              >
+                {banner.title}
+              </motion.h2>
+
+              {banner.description && (
+                <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-sm sm:text-lg text-white/75 font-body leading-relaxed max-w-lg"
                 >
-                  <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white py-2 px-4 rounded-full font-bold text-sm tracking-wide shadow-sm">
-                    <Sparkles className="h-4 w-4 text-yellow-400" />
-                    {banners[currentIndex].subtitle || 'Koleksi Terbaru'}
-                  </div>
-                </motion.div>
-
-                <motion.h2
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="font-heading text-4xl sm:text-5xl md:text-7xl font-bold leading-[1.1] text-white drop-shadow-2xl"
-                >
-                  {banners[currentIndex].title}
-                </motion.h2>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-lg md:text-2xl text-gray-100 drop-shadow-lg font-light leading-relaxed max-w-xl"
-                >
-                  {banners[currentIndex].description}
+                  {banner.description}
                 </motion.p>
+              )}
 
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  className="flex flex-wrap gap-4 pt-2"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+                className="flex flex-wrap gap-3 pt-1"
+              >
+                <Link
+                  href={banner.linkUrl || '/produk'}
+                  className="btn-pill-brand h-11 sm:h-12 px-7 sm:px-9 text-sm"
                 >
-                  <Link
-                    href={banners[currentIndex].linkUrl || '/produk'}
-                    className="inline-flex items-center justify-center gap-2 h-14 px-10 rounded-full bg-gradient-to-r from-primary-600 to-primary-800 text-white font-bold text-base shadow-xl shadow-primary-900/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-1 transition-all"
-                  >
-                    {banners[currentIndex].linkText || 'Belanja Sekarang'}
-                  </Link>
-                  <Link
-                    href="/produk"
-                    className="inline-flex items-center justify-center gap-2 h-14 px-10 rounded-full border border-white/30 bg-white/10 backdrop-blur-md text-white font-semibold text-base hover:bg-white/20 transition-all"
-                  >
-                    Lihat Katalog
-                  </Link>
-                </motion.div>
-              </div>
+                  {banner.linkText || 'Shop Now'}
+                </Link>
+                <Link
+                  href="/produk"
+                  className="inline-flex h-11 sm:h-12 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-7 font-display text-sm font-bold text-white backdrop-blur-sm hover:bg-white/20 transition-all"
+                >
+                  Lihat Katalog
+                </Link>
+              </motion.div>
             </div>
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        </motion.div>
+      </AnimatePresence>
 
-        <div className="absolute bottom-8 left-1/2 z-30 flex -translate-x-1/2 gap-3">
+      <div className="absolute bottom-6 left-0 right-0 z-30">
+        <div className="container-main flex gap-2">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`h-3 rounded-full transition-all duration-300 ${index === currentIndex ? "w-10 bg-white" : "w-3 bg-white/40 hover:bg-white/60"}`}
-              aria-label={`Go to slide ${index + 1}`}
+              className={`h-1 rounded-sm transition-all duration-300 ${
+                index === currentIndex
+                  ? 'w-8 bg-accent-lime'
+                  : 'w-4 bg-white/35 hover:bg-white/55'
+              }`}
+              aria-label={`Slide ${index + 1}`}
             />
           ))}
         </div>
-
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-black/30 p-4 text-white backdrop-blur-md hover:bg-white/20 transition-all active:scale-95"
-        >
-          <ArrowLeft className="h-6 w-6" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-black/30 p-4 text-white backdrop-blur-md hover:bg-white/20 transition-all active:scale-95"
-        >
-          <ArrowRight className="h-6 w-6" />
-        </button>
       </div>
+
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 sm:left-6 top-1/2 z-30 -translate-y-1/2 rounded-lg border border-white/20 bg-black/30 p-3 text-white backdrop-blur-md hover:bg-black/45 transition-all active:scale-95"
+        aria-label="Sebelumnya"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 sm:right-6 top-1/2 z-30 -translate-y-1/2 rounded-lg border border-white/20 bg-black/30 p-3 text-white backdrop-blur-md hover:bg-black/45 transition-all active:scale-95"
+        aria-label="Berikutnya"
+      >
+        <ArrowRight className="h-5 w-5" />
+      </button>
     </section>
   );
 }

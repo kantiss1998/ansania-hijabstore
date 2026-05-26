@@ -55,49 +55,49 @@ export default function OrderDetailsPage() {
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/akun/pesanan" className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
-          <ChevronLeft className="h-5 w-5" />
+        <Link href="/akun/pesanan" className="p-2.5 rounded-full border border-primary-100 bg-primary-50/50 text-gray-600 hover:text-primary-600 transition-colors">
+          <ChevronLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h2 className="text-xl font-bold font-heading text-gray-900">Detail Pesanan</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{order.id}</p>
+          <p className="section-label mb-0.5">Order detail</p>
+          <h2 className="font-display font-black text-lg text-dark tracking-tight">#{order.id}</h2>
         </div>
       </div>
 
-      <div className="card p-6 border border-gray-100 mb-6 bg-blue-50/50">
+      <div className="bento-card mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <p className="text-sm text-gray-500 mb-1">Status Pesanan</p>
+            <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 mb-1">Status Pesanan</p>
             <div className="flex items-center gap-2">
-              <Truck className="h-5 w-5 text-blue-600" />
-              <h3 className="font-bold text-blue-700 text-lg">{order.statusLabel}</h3>
+              <Truck className="h-4 w-4 text-[#F52D6E]" />
+              <h3 className="font-display font-black uppercase text-xs tracking-wider text-[#0A0A0A]">{order.statusLabel}</h3>
             </div>
           </div>
           <div className="text-left sm:text-right">
-            <p className="text-sm text-gray-500 mb-1">Tanggal Pembelian</p>
-            <p className="font-semibold text-gray-900">{order.date}</p>
+            <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 mb-1">Tanggal Pembelian</p>
+            <p className="text-xs font-body text-gray-900">{order.date}</p>
           </div>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="card p-6 border border-gray-100">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Package className="h-5 w-5 text-gray-400" /> Daftar Produk
+          <div className="border border-black/[0.06] bg-white rounded-2xl p-6">
+            <h3 className="font-display font-black uppercase text-xs tracking-wider text-[#0A0A0A] mb-4 pb-2 border-b border-black/[0.06] flex items-center gap-2">
+              <Package className="h-4 w-4 text-gray-400" /> Daftar Produk
             </h3>
             <div className="space-y-4">
               {order.items.map((item: any) => (
                 <div key={item.id} className="flex gap-4">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-black/[0.05]">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900">{item.name}</h4>
-                    <p className="text-sm text-gray-500 mt-0.5">{item.variant}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{item.name}</h4>
+                    <p className="text-[10px] text-gray-400 font-body mt-0.5">{item.variant}</p>
                     <div className="flex justify-between items-center mt-1">
-                      <p className="text-sm text-gray-600">{formatCurrency(item.price)} x {item.qty}</p>
-                      <p className="font-bold text-gray-900">{formatCurrency(item.price * item.qty)}</p>
+                      <p className="text-xs text-gray-400 font-body">{formatCurrency(item.price)} x {item.qty}</p>
+                      <p className="font-display font-black text-xs text-[#0A0A0A]">{formatCurrency(item.price * item.qty)}</p>
                     </div>
                   </div>
                 </div>
@@ -105,57 +105,57 @@ export default function OrderDetailsPage() {
             </div>
           </div>
 
-          <div className="card p-6 border border-gray-100">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-gray-400" /> Info Pengiriman
+          <div className="border border-black/[0.06] bg-white rounded-2xl p-6">
+            <h3 className="font-display font-black uppercase text-xs tracking-wider text-[#0A0A0A] mb-4 pb-2 border-b border-black/[0.06] flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-gray-400" /> Info Pengiriman
             </h3>
             <div className="grid sm:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Kurir</p>
+              <div className="text-xs font-body text-gray-500 space-y-1">
+                <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400">Kurir</p>
                 <p className="font-semibold text-gray-900">{order.courier}</p>
-                <p className="text-sm text-gray-500 mt-3 mb-1">No. Resi</p>
-                <p className="font-semibold text-primary-600">{order.resi}</p>
+                <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 pt-2">No. Resi</p>
+                <p className="font-display font-bold text-xs text-[#F52D6E]">{order.resi}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Alamat</p>
+              <div className="text-xs font-body text-gray-500 space-y-1">
+                <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400">Alamat Penerima</p>
                 <p className="font-semibold text-gray-900">{order.address.name}</p>
-                <p className="text-sm text-gray-600">{order.address.phone}</p>
-                <p className="text-sm text-gray-500 mt-1">{order.address.full}</p>
+                <p className="text-gray-400">{order.address.phone}</p>
+                <p className="text-[10px] text-gray-400 mt-1 max-w-xs">{order.address.full}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div>
-          <div className="card p-6 border border-gray-100 sticky top-24">
-            <h3 className="font-bold text-gray-900 mb-4">Ringkasan Pembayaran</h3>
-            <div className="space-y-3 mb-6 pb-6 border-b border-gray-100 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Metode Pembayaran</span>
-                <span className="font-semibold text-gray-900">{order.payment.method}</span>
+          <div className="border border-black/[0.06] bg-white rounded-2xl p-6 sticky top-24">
+            <h3 className="font-display font-black uppercase text-xs tracking-wider text-[#0A0A0A] mb-4 pb-2 border-b border-black/[0.06]">Ringkasan Pembayaran</h3>
+            <div className="space-y-3 mb-6 pb-6 border-b border-black/[0.06] text-xs">
+              <div className="flex justify-between font-body text-gray-500">
+                <span>Metode Pembayaran</span>
+                <span className="font-bold text-gray-900">{order.payment.method}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Harga ({order.items.length} Barang)</span>
-                <span className="font-semibold text-gray-900">{formatCurrency(order.payment.subtotal)}</span>
+              <div className="flex justify-between font-body text-gray-500">
+                <span>Total Harga ({order.items.length} Barang)</span>
+                <span className="font-bold text-gray-900">{formatCurrency(order.payment.subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Ongkos Kirim</span>
-                <span className="font-semibold text-gray-900">{formatCurrency(order.payment.shipping)}</span>
+              <div className="flex justify-between font-body text-gray-500">
+                <span>Ongkos Kirim</span>
+                <span className="font-bold text-gray-900">{formatCurrency(order.payment.shipping)}</span>
               </div>
               {order.payment.discount > 0 && (
-                <div className="flex justify-between text-red-600 font-semibold">
+                <div className="flex justify-between font-body text-red-600 font-bold">
                   <span>Diskon Promo</span>
                   <span>-{formatCurrency(order.payment.discount)}</span>
                 </div>
               )}
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-bold text-gray-900">Total Belanja</span>
-              <span className="text-xl font-black text-primary-600">{formatCurrency(order.payment.total)}</span>
+              <span className="font-display font-bold uppercase text-xs tracking-wider text-gray-900">Total Belanja</span>
+              <span className="text-base font-display font-black text-[#F52D6E]">{formatCurrency(order.payment.total)}</span>
             </div>
             
             {order.status === 'delivered' && (
-              <button className="w-full btn-primary py-3 rounded-xl mt-6">
+              <button className="w-full h-11 bg-[#0A0A0A] hover:bg-[#1A1A1A] text-white font-display font-bold uppercase tracking-wider text-[11px] rounded-xl mt-6 cursor-pointer">
                 Beli Lagi
               </button>
             )}

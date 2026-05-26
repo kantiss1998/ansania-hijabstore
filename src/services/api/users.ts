@@ -34,6 +34,16 @@ export const getUserProfile = async () => {
     name: 'Budi Santoso',
     email: 'budi@example.com',
     phone: '081234567890',
+    avatarUrl: '',
+    gender: 'male' as const,
+    birthDate: '1995-10-15',
+    stylePreference: 'Casual Modest',
+    sizePreference: 'M',
+    loyaltyPoints: 1250,
+    loyaltyTier: 'GOLD' as const,
+    voucherCount: 4,
+    wishlistCount: 3,
+    orderCount: 12,
   };
 };
 

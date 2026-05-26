@@ -85,6 +85,15 @@ const dummyDetailProduct: ProductDetail = {
 
 export const getProducts = async (params?: ProductFilter) => {
   let items = dummyListProducts;
+  if (params?.q) {
+    const term = params.q.toLowerCase().trim();
+    items = items.filter(
+      (p) =>
+        p.name.toLowerCase().includes(term) ||
+        p.category.name.toLowerCase().includes(term) ||
+        p.category.slug.toLowerCase().includes(term),
+    );
+  }
   if (params?.isFeatured) {
     items = items.filter((p) => p.isFeatured);
   }

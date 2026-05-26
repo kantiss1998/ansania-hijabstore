@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { useRef } from 'react';
+import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { type ProductListItem } from '@/types/product.types';
 import ProductCard from '@/components/product/ProductCard';
 import { ROUTES } from '@/constants/routes';
@@ -9,37 +12,76 @@ interface Props {
 }
 
 export function NewArrivalsSection({ products }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="py-12 sm:py-16 bg-gray-50/60">
+    <section className="py-10 sm:py-14 bg-primary-50/25 border-b border-primary-100/50">
       <div className="container-main">
         {/* Header */}
-        <div className="mb-10 text-center space-y-4">
-          <div className="inline-block px-4 py-1.5 bg-primary-50 rounded-full text-primary-600 text-xs font-black uppercase tracking-widest">
-            Terbaru
+        <div className="section-header mb-6">
+          <div>
+            <p className="section-label mb-1.5">Just Dropped</p>
+            <h2 className="section-title">
+              New <span className="text-gradient-brand">Arrival</span>
+            </h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-heading text-gray-900 italic">
-            Koleksi Teranyar
-          </h2>
-          <p className="text-gray-500 max-w-xl mx-auto italic">
-            Desain eksklusif terbaru yang memadukan tren kekinian dengan sentuhan klasik yang abadi.
-          </p>
+          <Link href={`${ROUTES.PRODUCTS}?sort=newest`} className="section-link group">
+            Lihat Semua
+            <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-          {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        {/* Carousel Slider */}
+        <div className="relative group/nav">
+          {/* Navigation Buttons */}
+          <button
+            onClick={scrollLeft}
+            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 hidden md:flex items-center justify-center rounded-full bg-white border border-black/10 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:bg-[#FAFAFA] active:scale-95 transition-all text-[#0A0A0A] opacity-0 group-hover/nav:opacity-100 duration-200"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={scrollRight}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-9 h-9 hidden md:flex items-center justify-center rounded-full bg-white border border-black/10 shadow-[0_2px_10px_rgba(0,0,0,0.06)] hover:bg-[#FAFAFA] active:scale-95 transition-all text-[#0A0A0A] opacity-0 group-hover/nav:opacity-100 duration-200"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          {/* Scroll Container */}
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-1"
+          >
+            {products.slice(0, 12).map((product) => (
+              <div key={product.id} className="w-[170px] sm:w-[210px] md:w-[230px] flex-shrink-0">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* CTA */}
-        <div className="mt-12 text-center">
+        <div className="mt-6 flex items-center justify-center gap-3">
           <Link
             href={`${ROUTES.PRODUCTS}?sort=newest`}
-            className="inline-flex items-center gap-2 px-10 py-3.5 border-2 border-primary-100 hover:border-primary-500 rounded-full text-gray-900 font-bold hover:bg-primary-50 transition-all group"
+            className="group btn-pill-brand h-12 px-8 text-sm"
           >
-            Lihat Semua Koleksi Baru
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            Lihat Koleksi Terbaru
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

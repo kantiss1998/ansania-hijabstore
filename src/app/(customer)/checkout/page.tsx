@@ -12,6 +12,8 @@ import { validateVoucher } from '@/services/api/vouchers';
 import { createOrder } from '@/services/api/orders';
 import { formatCurrency, cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
+import { PageHero } from '@/components/customer/PageHero';
+import { CustomerCard } from '@/components/customer/CustomerCard';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
@@ -166,12 +168,14 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center card p-12 max-w-md w-full">
-          <ShoppingCartIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold font-heading text-gray-900 mb-2">Keranjang Kosong</h2>
-          <p className="text-gray-500 mb-6">Pilih produk favorit Anda dan selesaikan pesanan di sini.</p>
-          <Link href={ROUTES.PRODUCTS} className="btn-primary w-full">Mulai Belanja</Link>
+    <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center rounded-3xl border border-primary-100 bg-white p-12 max-w-md w-full shadow-[0_24px_60px_-32px_rgba(245,45,110,0.3)]">
+          <ShoppingCartIcon className="h-12 w-12 text-primary-300 mx-auto mb-4" />
+          <h2 className="font-display font-black text-lg text-dark mb-2">Keranjang kosong</h2>
+          <p className="text-sm text-gray-500 mb-6 font-body">Yuk isi dulu sebelum checkout ✨</p>
+          <Link href={ROUTES.PRODUCTS} className="btn-pill-brand w-full h-12">
+            Mulai belanja
+          </Link>
         </div>
       </div>
     );
@@ -180,68 +184,73 @@ export default function CheckoutPage() {
   const selectedAddress = addresses.find(a => a.id === selectedAddressId);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-8 lg:py-12">
-      <div className="container-main">
-        <h1 className="text-2xl sm:text-3xl font-black font-heading text-gray-900 mb-8">Checkout</h1>
+    <div className="min-h-screen">
+      <PageHero
+        size="compact"
+        badge="Secure"
+        eyebrow="Checkout"
+        title="Selesaikan pesanan"
+        description="Review alamat, kurir, dan bayar dengan aman."
+      />
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1 space-y-6">
-            {/* Address */}
-            <div className="card p-6">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                <h2 className="font-bold text-gray-900 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary-600" />
-                  Alamat Pengiriman
-                </h2>
-                <Link href="/akun/alamat" className="text-sm font-semibold text-primary-600 hover:text-primary-700">
-                  Ubah Alamat
+      <div className="container-main py-8 lg:py-10">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          <div className="flex-1 space-y-5">
+            <CustomerCard
+              title="Alamat pengiriman"
+              icon={<MapPin className="h-4 w-4 text-primary-500" />}
+              action={
+                <Link href="/akun/alamat" className="text-xs font-display font-bold text-primary-600 hover:text-primary-700">
+                  Ubah
                 </Link>
-              </div>
+              }
+            >
               
               {selectedAddress ? (
-                <div>
-                  <p className="font-bold text-gray-900">{selectedAddress.recipient_name} <span className="font-normal text-gray-500">| {selectedAddress.phone}</span></p>
-                  <p className="text-sm text-gray-600 mt-1">{selectedAddress.full_address}</p>
-                  <p className="text-sm text-gray-500 mt-1 uppercase text-xs font-semibold">{selectedAddress.district}, {selectedAddress.city}</p>
+                <div className="text-xs font-body text-gray-500 space-y-1">
+                  <p className="font-display font-bold text-sm text-[#0A0A0A]">{selectedAddress.recipient_name} <span className="font-body font-normal text-gray-400">| {selectedAddress.phone}</span></p>
+                  <p className="leading-relaxed">{selectedAddress.full_address}</p>
+                  <p className="uppercase text-[10px] font-bold text-gray-400">{selectedAddress.district}, {selectedAddress.city}</p>
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <p className="text-sm text-gray-500 mb-3">Anda belum memilih alamat pengiriman</p>
-                  <Link href="/akun/alamat" className="btn-outline text-sm py-2">Pilih Alamat</Link>
+                  <p className="text-xs text-gray-400 mb-3 font-body">Anda belum memilih alamat pengiriman</p>
+                  <Link
+                    href="/akun/alamat"
+                    className="inline-flex items-center justify-center h-9 px-4 rounded-xl border border-black/10 text-gray-700 font-display font-bold uppercase tracking-wider text-[10px] hover:border-black/20 transition-colors"
+                  >
+                    Pilih Alamat
+                  </Link>
                 </div>
               )}
-            </div>
+            </CustomerCard>
 
-            {/* Products */}
-            <div className="card p-6">
-              <h2 className="font-bold text-gray-900 mb-4 pb-4 border-b border-gray-100">Produk Dipesan</h2>
+            <CustomerCard title="Produk dipesan">
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <img src={item.thumbnailUrl} alt={item.productName} className="w-20 h-20 object-cover rounded-xl border border-gray-100" />
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">{item.productName}</h3>
-                      <p className="text-sm text-gray-500">Varian: {item.variantName}</p>
+                    <img src={item.thumbnailUrl} alt={item.productName} className="w-20 h-20 object-cover rounded-xl border border-[#0A0A0A]/[0.05]" />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{item.productName}</h3>
+                      <p className="text-[10px] text-gray-400 font-body mt-0.5">Varian: {item.variantName}</p>
                       <div className="flex justify-between items-center mt-2">
-                        <p className="text-sm text-gray-600">{formatCurrency(item.price)} x {item.qty}</p>
-                        <p className="font-bold text-primary-600">{formatCurrency(item.price * item.qty)}</p>
+                        <p className="text-xs text-gray-400 font-body">{formatCurrency(item.price)} x {item.qty}</p>
+                        <p className="font-display font-black text-xs text-[#0A0A0A]">{formatCurrency(item.price * item.qty)}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </CustomerCard>
 
-            {/* Shipping */}
-            <div className="card p-6">
-              <h2 className="font-bold text-gray-900 flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
-                <Truck className="h-5 w-5 text-primary-600" />
-                Opsi Pengiriman
-              </h2>
+            <CustomerCard
+              title="Opsi pengiriman"
+              icon={<Truck className="h-4 w-4 text-primary-500" />}
+            >
               
               {isCalculatingShipping ? (
-                <div className="flex items-center gap-2 text-gray-500 py-4">
-                  <Loader2 className="h-5 w-5 animate-spin" /> Menghitung ongkos kirim...
+                <div className="flex items-center gap-2 text-xs text-gray-400 py-4 font-body">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#F52D6E]" /> Menghitung ongkos kirim...
                 </div>
               ) : shippingOptions.length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -250,67 +259,68 @@ export default function CheckoutPage() {
                       key={i}
                       onClick={() => setSelectedShipping(opt)}
                       className={cn(
-                        'flex justify-between items-center p-4 rounded-xl border-2 text-left transition-all',
+                        'flex justify-between items-center p-4 rounded-xl border text-left transition-all cursor-pointer',
                         selectedShipping?.name === opt.name
-                          ? 'border-primary-500 bg-primary-50/30'
-                          : 'border-gray-100 hover:border-gray-200'
+                          ? 'border-[#0A0A0A] bg-[#0A0A0A]/5 shadow-sm'
+                          : 'border-black/[0.08] hover:border-black/20'
                       )}
                     >
                       <div>
-                        <p className="font-bold text-gray-900">{opt.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">Estimasi: {opt.etd}</p>
+                        <p className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A]">{opt.name}</p>
+                        <p className="text-[10px] text-gray-400 font-body mt-1">Estimasi: {opt.etd}</p>
                       </div>
-                      <span className="font-bold text-primary-600">{formatCurrency(opt.cost)}</span>
+                      <span className="font-display font-black text-xs text-[#F52D6E]">{formatCurrency(opt.cost)}</span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 py-2">Kurir tidak tersedia untuk alamat ini.</p>
+                <p className="text-xs text-gray-400 py-2 font-body">Kurir tidak tersedia untuk alamat ini.</p>
               )}
-            </div>
+            </CustomerCard>
           </div>
 
-          {/* Order Summary Sidebar */}
           <aside className="w-full lg:w-96 flex-shrink-0">
-            <div className="card p-6 sticky top-24">
-              <h2 className="font-bold text-gray-900 mb-6">Ringkasan Belanja</h2>
+            <CustomerCard className="sticky top-28" title="Ringkasan belanja">
 
               {/* Voucher */}
-              <div className="mb-6 pb-6 border-b border-gray-100">
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <Ticket className="h-4 w-4" /> Gunakan Voucher
+              <div className="mb-6 pb-6 border-b border-black/[0.06]">
+                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                  <Ticket className="h-3.5 w-3.5 text-gray-400" /> Gunakan Voucher
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={voucherCode}
                     onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                    placeholder="Masukkan kode promo"
-                    className="input py-2"
+                    placeholder="KODE VOUCHER"
+                    className="flex-1 px-4 py-2 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all placeholder:text-gray-300 uppercase tracking-wider"
                   />
-                  <button onClick={handleApplyVoucher} className="btn-primary py-2 px-4 text-sm rounded-xl">
+                  <button
+                    onClick={handleApplyVoucher}
+                    className="h-10 px-4 text-[10px] font-display font-bold uppercase tracking-wider bg-dark hover:bg-primary-600 text-white rounded-2xl transition-all cursor-pointer"
+                  >
                     Terapkan
                   </button>
                 </div>
                 {appliedVoucher && (
-                  <p className="text-sm text-green-600 mt-2 font-medium flex items-center gap-1">
+                  <p className="text-[10px] text-green-600 mt-2 font-display font-bold uppercase tracking-wider flex items-center gap-1">
                     ✓ Voucher {appliedVoucher.code} berhasil dipasang
                   </p>
                 )}
               </div>
 
               {/* Calculation */}
-              <div className="space-y-3 mb-6 pb-6 border-b border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Total Harga ({items.length} Barang)</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(subtotal)}</span>
+              <div className="space-y-3 mb-6 pb-6 border-b border-black/[0.06] text-xs">
+                <div className="flex justify-between font-body text-gray-500">
+                  <span>Total Harga ({items.length} Barang)</span>
+                  <span className="font-bold text-gray-900">{formatCurrency(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Total Ongkos Kirim</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(shippingCost)}</span>
+                <div className="flex justify-between font-body text-gray-500">
+                  <span>Total Ongkos Kirim</span>
+                  <span className="font-bold text-gray-900">{formatCurrency(shippingCost)}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-red-600 font-medium">
+                  <div className="flex justify-between font-body text-red-600 font-bold">
                     <span>Diskon Voucher</span>
                     <span>-{formatCurrency(discountAmount)}</span>
                   </div>
@@ -318,30 +328,30 @@ export default function CheckoutPage() {
               </div>
 
               <div className="flex justify-between items-end mb-8">
-                <span className="font-bold text-gray-900">Total Tagihan</span>
-                <span className="text-2xl font-black font-heading text-primary-600">{formatCurrency(total)}</span>
+                <span className="font-display font-bold uppercase text-xs tracking-wider text-gray-900">Total Tagihan</span>
+                <span className="text-xl font-display font-black text-[#F52D6E]">{formatCurrency(total)}</span>
               </div>
 
-              <div className="bg-blue-50 text-blue-800 p-3 rounded-xl flex items-start gap-2 mb-6 text-xs leading-relaxed">
-                <ShieldCheck className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <div className="bg-gray-50 border border-black/[0.06] text-gray-400 p-3 rounded-xl flex items-start gap-2.5 mb-6 text-[10px] leading-relaxed font-body">
+                <ShieldCheck className="h-4 w-4 flex-shrink-0 text-gray-400 mt-0.5" />
                 <p>Transaksi Anda dilindungi oleh sistem keamanan berstandar tinggi. Data terenkripsi dengan aman.</p>
               </div>
 
               <button
                 onClick={handleCheckout}
                 disabled={isProcessing || !selectedAddressId || !selectedShipping}
-                className="w-full btn-primary rounded-2xl py-4 text-base shadow-lg shadow-primary-500/30 flex justify-center items-center gap-2"
+                className="btn-pill-brand w-full h-12 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:transform-none"
               >
                 {isProcessing ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <CreditCard className="h-5 w-5" />
+                    <CreditCard className="h-4 w-4" />
                     Bayar Sekarang
                   </>
                 )}
               </button>
-            </div>
+            </CustomerCard>
           </aside>
         </div>
       </div>

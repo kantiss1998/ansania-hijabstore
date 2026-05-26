@@ -1,15 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Mail,
-  MapPin,
-  Phone,
-  MessageCircle,
-  ArrowRight,
-  Send,
-  Sparkles,
-} from 'lucide-react';
+import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 
 function InstagramIcon({ className }: { className?: string }) {
@@ -20,175 +12,150 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-function FacebookIcon({ className }: { className?: string }) {
+function TikTokIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.77 1.52V6.76a4.84 4.84 0 01-1-.07z" />
     </svg>
   );
 }
 
-function TwitterIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
-
-const SHOP_LINKS = [
-  { name: 'Semua Produk', href: ROUTES.PRODUCTS },
+const SHOP = [
+  { name: 'New Arrival', href: `${ROUTES.PRODUCTS}?sort=newest` },
   { name: 'Flash Sale', href: ROUTES.FLASH_SALE },
+  { name: 'Semua Produk', href: ROUTES.PRODUCTS },
   { name: 'Kategori', href: '/kategori' },
-  { name: 'Tentang Kami', href: '/tentang' },
-  { name: 'Produk Baru', href: `${ROUTES.PRODUCTS}?sort=newest` },
+  { name: 'Brand', href: '/brand' },
 ];
-
-const HELP_LINKS = [
+const HELP = [
   { name: 'Cara Belanja', href: '/cara-belanja' },
   { name: 'Kebijakan Pengiriman', href: '/pengiriman' },
   { name: 'Pengembalian Barang', href: '/retur' },
   { name: 'Hubungi Kami', href: '/kontak' },
-];
-
-const ACCOUNT_LINKS = [
-  { name: 'Akun Saya', href: ROUTES.ACCOUNT.PROFILE },
-  { name: 'Pesanan Saya', href: ROUTES.ORDERS },
-  { name: 'Wishlist', href: ROUTES.ACCOUNT.WISHLIST },
-  { name: 'Notifikasi', href: ROUTES.ACCOUNT.NOTIFICATIONS },
+  { name: 'Tentang Kami', href: '/tentang' },
 ];
 
 export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-br from-gray-50 via-white to-gray-50/50 pt-16 mt-20 border-t border-gray-100">
-      <div className="container-main">
-        {/* Newsletter */}
-        <div className="mb-16 rounded-4xl bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 px-6 py-12 text-white shadow-2xl shadow-primary-900/20 md:px-12 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl" />
-          <div className="relative z-10 grid gap-8 lg:grid-cols-2 lg:items-center">
+    <footer className="bg-[#0A0A0A] text-white">
+      {/* Stay in the loop — dinonaktifkan sementara */}
+      {/* <div className="border-b border-white/[0.06]">...</div> */}
+
+      {/* ── Main Grid ── */}
+      <div className="container-main py-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+          {/* Brand */}
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-5">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
-                <Mail className="h-4 w-4" />
-                <span className="text-sm font-medium">Newsletter</span>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold font-heading mb-3 leading-tight">
-                Bergabung dengan Komunitas ansania
-              </h2>
-              <p className="text-primary-100 leading-relaxed">
-                Dapatkan penawaran eksklusif, inspirasi gaya hijab, dan koleksi terbaru langsung ke inbox Anda.
+              <Link href={ROUTES.HOME}>
+                <span className="font-display font-black text-2xl text-white tracking-[-0.05em] hover:text-primary-400 transition-colors">
+                  ansania
+                </span>
+              </Link>
+              <p className="text-sm text-white/35 font-body leading-relaxed mt-3">
+                Fashion muslim premium untuk generasi modern. Quality meets style.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
-              <input
-                type="email"
-                placeholder="Masukkan email Anda"
-                className="flex-1 sm:max-w-xs px-5 py-3 rounded-full border-none bg-white/10 text-white placeholder-primary-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/30"
-              />
-              <button className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full bg-white text-primary-900 font-bold hover:bg-primary-50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-                <Send className="h-4 w-4" />
-                Berlangganan
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Links Grid */}
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8 border-b border-gray-200 pb-12">
-          {/* Brand */}
-          <div className="space-y-5">
-            <Link href={ROUTES.HOME}>
-              <span className="text-2xl font-black font-heading bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-                ansania
-              </span>
-            </Link>
-            <p className="text-gray-600 leading-relaxed text-sm">
-              Destinasi fashion muslim premium dengan kualitas terbaik dan desain modern yang elegan. Sempurnakan penampilan Anda dengan koleksi kami.
-            </p>
-            <div className="flex gap-3">
-              {[
-                { icon: InstagramIcon, href: '#', label: 'Instagram', style: { background: 'linear-gradient(135deg, #ec4899, #8b5cf6)' } },
-                { icon: FacebookIcon, href: '#', label: 'Facebook', style: { background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' } },
-                { icon: TwitterIcon, href: '#', label: 'Twitter', style: { background: 'linear-gradient(135deg, #38bdf8, #0284c7)' } },
-              ].map(({ icon: Icon, href, label, style }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="h-10 w-10 flex items-center justify-center rounded-full text-white hover:shadow-lg hover:-translate-y-1 transition-all"
-                  style={style}
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
+            {/* Social Links with handles & follower counts */}
+            <div className="space-y-3 pt-2">
+              <p className="text-[10px] font-display font-black uppercase tracking-[0.2em] text-white/40">
+                Follow Us
+              </p>
+              <div className="flex flex-col gap-2.5">
+                {[
+                  {
+                    icon: InstagramIcon,
+                    href: '#',
+                    label: '@ansania.official',
+                    sub: '12K Followers',
+                    bg: 'linear-gradient(135deg, #f43f5e, #a855f7)',
+                  },
+                  {
+                    icon: TikTokIcon,
+                    href: '#',
+                    label: '@ansania',
+                    sub: '8.5K Followers',
+                    bg: '#1a1a1a',
+                  },
+                ].map(({ icon: Icon, href, label, sub, bg }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3 transition-all"
+                  >
+                    <div
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-white group-hover:scale-105 transition-transform"
+                      style={{ background: bg }}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-display font-bold text-white/80 group-hover:text-white transition-colors">
+                        {label}
+                      </p>
+                      <p className="text-[9px] text-white/40 font-body leading-none mt-0.5">{sub}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Shop */}
-          <FooterLinkGroup title="Belanja" links={SHOP_LINKS} />
+          <FooterGroup title="Belanja" links={SHOP} />
 
           {/* Help */}
-          <FooterLinkGroup title="Bantuan" links={HELP_LINKS} />
+          <FooterGroup title="Bantuan" links={HELP} />
 
           {/* Contact */}
-          <div>
-            <h3 className="font-heading font-bold text-gray-900 text-base mb-5 relative inline-block">
+          <div className="space-y-4">
+            <h3 className="font-display font-bold text-white text-[11px] uppercase tracking-[0.15em]">
               Kontak
-              <span className="absolute -bottom-2 left-0 w-10 h-0.5 bg-gradient-primary rounded-full" />
             </h3>
-            <ul className="space-y-4 text-gray-600 text-sm">
-              <li className="flex items-start gap-3">
-                <div className="p-1.5 rounded-lg bg-primary-50 text-primary-600 mt-0.5">
-                  <MapPin className="h-4 w-4" />
-                </div>
-                <span>Jakarta, Indonesia</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-primary-50 text-primary-600">
-                  <Phone className="h-4 w-4" />
-                </div>
-                <span>+62 812 3456 7890</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg bg-primary-50 text-primary-600">
-                  <Mail className="h-4 w-4" />
-                </div>
-                <span>halo@ansania.com</span>
-              </li>
-              <li className="pt-2">
-                <a
-                  href="https://wa.me/6281234567890"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-full bg-gradient-primary text-white text-sm font-semibold hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5 transition-all"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat WhatsApp
-                </a>
-              </li>
+            <ul className="space-y-3">
+              {[
+                { icon: MapPin, text: 'Jakarta, Indonesia' },
+                { icon: Phone, text: '+62 812 3456 7890' },
+                { icon: Mail, text: 'halo@ansania.com' },
+              ].map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-center gap-2.5 text-white/40 text-sm font-body">
+                  <Icon className="h-3.5 w-3.5 text-white/25 flex-shrink-0" />
+                  {text}
+                </li>
+              ))}
             </ul>
+            <a
+              href="https://wa.me/6281234567890"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[#25D366] text-white text-[12px] font-display font-bold hover:opacity-90 transition-opacity"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              Chat WhatsApp
+            </a>
           </div>
         </div>
+      </div>
 
-        {/* Bottom */}
-        <div className="py-8 flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-sm text-gray-500">
-            © {year} ansania. All rights reserved. Made with ❤️ in Indonesia
+      {/* ── Bottom Bar ── */}
+      <div className="border-t border-white/[0.06]">
+        <div className="container-main py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[11px] text-white/25 font-body">
+            © {year} ansania. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5">
             {[
               { name: 'Kebijakan Privasi', href: '/kebijakan-privasi' },
               { name: 'Syarat & Ketentuan', href: '/syarat-ketentuan' },
-            ].map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm text-gray-500 hover:text-primary-600 transition-colors relative group"
-              >
-                {link.name}
-                <span className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-primary-600 scale-x-0 origin-left transition-transform group-hover:scale-x-100 rounded-full" />
+            ].map((l) => (
+              <Link key={l.name} href={l.href}
+                className="text-[11px] text-white/25 hover:text-white/60 transition-colors font-body">
+                {l.name}
               </Link>
             ))}
           </div>
@@ -198,28 +165,18 @@ export function Footer() {
   );
 }
 
-function FooterLinkGroup({
-  title,
-  links,
-}: {
-  title: string;
-  links: { name: string; href: string }[];
-}) {
+function FooterGroup({ title, links }: { title: string; links: { name: string; href: string }[] }) {
   return (
-    <div>
-      <h3 className="font-heading font-bold text-gray-900 text-base mb-5 relative inline-block">
+    <div className="space-y-4">
+      <h3 className="font-display font-bold text-white text-[11px] uppercase tracking-[0.15em]">
         {title}
-        <span className="absolute -bottom-2 left-0 w-10 h-0.5 bg-gradient-primary rounded-full" />
       </h3>
-      <ul className="space-y-3">
-        {links.map((link) => (
-          <li key={link.name}>
-            <Link
-              href={link.href}
-              className="group inline-flex items-center gap-2 text-sm text-gray-600 hover:text-primary-600 transition-all"
-            >
-              <ArrowRight className="h-3.5 w-3.5 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-              {link.name}
+      <ul className="space-y-2.5">
+        {links.map((l) => (
+          <li key={l.name}>
+            <Link href={l.href}
+              className="text-sm text-white/35 hover:text-white/70 transition-colors font-body">
+              {l.name}
             </Link>
           </li>
         ))}

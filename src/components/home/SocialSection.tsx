@@ -1,4 +1,6 @@
-import { MessageCircle, Sparkles } from 'lucide-react';
+'use client';
+
+import { MessageCircle, ExternalLink } from 'lucide-react';
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -8,97 +10,84 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
-function FacebookIcon({ className }: { className?: string }) {
+function TikTokIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.17 8.17 0 004.77 1.52V6.76a4.84 4.84 0 01-1-.07z" />
     </svg>
   );
 }
 
+const SOCIALS = [
+  {
+    icon: InstagramIcon,
+    label: 'Instagram',
+    handle: '@ansania.official',
+    sub: '12K Followers',
+    href: '#',
+    bg: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 50%, #a855f7 100%)',
+  },
+  {
+    icon: TikTokIcon,
+    label: 'TikTok',
+    handle: '@ansania',
+    sub: '8.5K Followers',
+    href: '#',
+    bg: '#0A0A0A',
+  },
+  {
+    icon: MessageCircle,
+    label: 'WhatsApp',
+    handle: 'Chat CS Kami',
+    sub: 'Respon < 5 menit',
+    href: 'https://wa.me/6281234567890',
+    bg: '#25D366',
+  },
+];
+
 export function SocialSection() {
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-10 sm:py-14 bg-gradient-to-b from-white to-primary-50/30 border-b border-primary-100/50">
       <div className="container-main">
-        <div className="relative rounded-4xl overflow-hidden">
-          {/* Background */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #FFF5F7 0%, #F3E8FF 50%, #FFE4F0 100%)' }} />
-          <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full blur-3xl" style={{ background: 'rgba(186, 53, 101, 0.15)' }} />
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-3xl" style={{ background: 'rgba(139, 92, 246, 0.15)' }} />
-
-          <div className="relative z-10 py-16 px-6 text-center">
-            {/* Label */}
-            <div className="inline-flex items-center gap-2 bg-white rounded-full px-5 py-2.5 shadow-md mb-6" style={{ border: '1px solid rgba(229, 231, 235, 0.5)' }}>
-              <Sparkles className="h-4 w-4 animate-pulse" style={{ color: '#BA3565' }} />
-              <span className="text-sm font-bold" style={{ background: 'linear-gradient(to right, #BA3565, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Terhubung dengan Kami
-              </span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl font-bold font-heading mb-3" style={{ background: 'linear-gradient(to right, #1C1917, #881649, #5B21B6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Ikuti Kami di Media Sosial
+        {/* Header */}
+        <div className="section-header mb-6">
+          <div>
+            <p className="section-label mb-1.5">Community</p>
+            <h2 className="section-title">
+              Join the <span className="text-gradient-brand">squad</span>
             </h2>
-            <p className="text-gray-600 text-lg max-w-md mx-auto mb-10">
-              Dapatkan inspirasi gaya, tips padu padan, dan update koleksi terbaru
-            </p>
-
-            {/* Social Cards */}
-            <div className="flex flex-wrap gap-5 justify-center">
-              {[
-                {
-                  icon: InstagramIcon,
-                  label: 'Instagram',
-                  handle: '@ansania',
-                  href: '#',
-                  gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
-                  shadowColor: 'rgba(236, 72, 153, 0.2)',
-                  borderHover: '#fce7f3',
-                },
-                {
-                  icon: FacebookIcon,
-                  label: 'Facebook',
-                  handle: '/ansania',
-                  href: '#',
-                  gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                  shadowColor: 'rgba(59, 130, 246, 0.2)',
-                  borderHover: '#dbeafe',
-                },
-                {
-                  icon: MessageCircle,
-                  label: 'WhatsApp',
-                  handle: 'Chat Kami',
-                  href: 'https://wa.me/6281234567890',
-                  gradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                  shadowColor: 'rgba(34, 197, 94, 0.2)',
-                  borderHover: '#dcfce7',
-                },
-              ].map(({ icon: Icon, label, handle, href, gradient }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={label}
-                  className="group flex flex-col items-center gap-4 p-8 bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 border border-gray-100 min-w-[150px]"
-                >
-                  <div className="relative">
-                    <div
-                      className="relative flex h-16 w-16 items-center justify-center rounded-full text-white shadow-xl"
-                      style={{ background: gradient }}
-                    >
-                      <Icon className="h-8 w-8" />
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="font-bold text-gray-800 group-hover:text-primary-700 transition-colors">
-                      {label}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{handle}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
           </div>
+        </div>
+
+        {/* Cards Row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {SOCIALS.map(({ icon: Icon, label, handle, sub, href, bg }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-4 flex-1 px-5 py-4 rounded-3xl bento-card hover:-translate-y-1"
+            >
+              {/* Icon */}
+              <div
+                className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-xl text-white"
+                style={{ background: bg }}
+              >
+                <Icon className="h-5 w-5" />
+              </div>
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-bold text-sm text-[#0A0A0A] group-hover:text-primary-600 transition-colors truncate">
+                  {label}
+                </p>
+                <p className="text-xs text-gray-500 font-body truncate">{handle}</p>
+                <p className="text-[10px] text-gray-400 font-body mt-0.5">{sub}</p>
+              </div>
+              {/* Arrow */}
+              <ExternalLink className="h-3.5 w-3.5 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" />
+            </a>
+          ))}
         </div>
       </div>
     </section>

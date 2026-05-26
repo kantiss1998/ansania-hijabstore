@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, ShoppingCart, Star, Zap } from 'lucide-react';
-import { type FC } from 'react';
+import { Heart, ShoppingCart, Star, Zap, TrendingUp } from 'lucide-react';
+import { FC, useState, useEffect } from 'react';
 import { type ProductListItem } from '@/types/product.types';
 import { ROUTES } from '@/constants/routes';
 import { formatCurrency, getDiscountPercent, cn } from '@/lib/utils';
@@ -16,9 +16,29 @@ interface Props {
   priority?: boolean;
 }
 
-const STOCK_BADGE: Record<string, { label: string; className: string }> = {
-  low_stock: { label: 'Stok Terbatas', className: 'bg-amber-100 text-amber-700' },
-  out_of_stock: { label: 'Habis', className: 'bg-red-100 text-red-700' },
+const getAltImages = (id: number, primary: string, categorySlug: string) => {
+  const gamisPhotos = [
+    'photo-1515347619362-e64e9e42d765',
+    'photo-1609357605129-26f69add5d6e',
+    'photo-1567538096630-e0c55bd6374c',
+    'photo-1573496359142-b8d87734a5a2',
+  ];
+  const hijabPhotos = [
+    'photo-1589810635656-3c28549aa669',
+    'photo-1583391733956-3750e0ff4e8b',
+    'photo-1607990283143-e81e7a2c93ab',
+    'photo-1535632066927-ab7c9ab60908',
+  ];
+
+  const pool = categorySlug.toLowerCase() === 'gamis' ? gamisPhotos : hijabPhotos;
+  const p1 = pool[id % pool.length];
+  const p2 = pool[(id + 1) % pool.length];
+
+  return [
+    primary,
+    `https://images.unsplash.com/photo-${p1}?q=80&w=800&auto=format&fit=crop`,
+    `https://images.unsplash.com/photo-${p2}?q=80&w=800&auto=format&fit=crop`,
+  ].filter((val, index, self) => self.indexOf(val) === index).slice(0, 3);
 };
 
 const ProductCard: FC<Props> = ({ product, className }) => {
@@ -26,13 +46,38 @@ const ProductCard: FC<Props> = ({ product, className }) => {
   const { toggle, isWishlisted } = useWishlistStore();
   const wishlisted = isWishlisted(product.id);
 
-  const discount = product.comparePrice
-    ? getDiscountPercent(product.comparePrice, product.flashSalePrice ?? product.price)
+  const images = getAltImages(product.id, product.thumbnailUrl, product.category.slug || '');
+  const [imgIndex, setImgIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const staggerDelay = (product.id % 4) * 800;
+    const timeoutId = setTimeout(() => {
+      const intervalId = setInterval(() => {
+        setImgIndex((prev) => (prev + 1) % images.length);
+      }, 4000);
+      return () => clearInterval(intervalId);
+    }, staggerDelay);
+
+    return () => clearTimeout(timeoutId);
+  }, [images.length, product.id]);
+
+  const discount = product.flashSalePrice
+    ? Math.round(((product.price - product.flashSalePrice) / product.price) * 100)
+    : product.comparePrice
+    ? getDiscountPercent(product.comparePrice, product.price)
     : 0;
+
+  const displayPrice = product.flashSalePrice ?? product.price;
+  const originalPrice = product.flashSalePrice ? product.price : product.comparePrice;
+  const isOutOfStock = product.stockStatus === 'out_of_stock';
+  const isLowStock = product.stockStatus === 'low_stock';
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (product.stockStatus === 'out_of_stock') return;
+    e.stopPropagation();
+    if (isOutOfStock) return;
     addItem({
       id: product.id,
       productId: product.id,
@@ -41,164 +86,177 @@ const ProductCard: FC<Props> = ({ product, className }) => {
       productSlug: product.slug,
       variantName: 'Default',
       thumbnailUrl: product.thumbnailUrl,
-      price: product.flashSalePrice ?? product.price,
+      price: displayPrice,
       qty: 1,
       maxQty: 99,
     });
     openDrawer();
-    toast.success(`${product.name} ditambahkan ke keranjang!`, { duration: 2000 });
+    toast.success('Ditambahkan ke keranjang!', { duration: 1800 });
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     toggle(product.id);
-    toast.success(
-      wishlisted ? 'Dihapus dari wishlist' : 'Ditambahkan ke wishlist',
-      { duration: 1500 }
-    );
+    toast.success(wishlisted ? 'Dihapus dari wishlist' : 'Masuk wishlist ❤️', { duration: 1400 });
   };
 
   return (
     <Link
       href={ROUTES.PRODUCT(product.slug)}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white transition-all duration-300 hover:shadow-2xl hover:shadow-primary-500/10 hover:-translate-y-2 hover:border-primary-200',
+        'group relative flex flex-col bg-white overflow-hidden rounded-xl border border-primary-100/80 transition-all duration-300',
+        'hover:shadow-[0_16px_48px_-16px_rgba(245,45,110,0.28)] hover:border-primary-200 hover:-translate-y-1.5',
+        isOutOfStock && 'opacity-70',
         className
       )}
     >
-      {/* Image */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Badges */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+      {/* ── Image Area ── */}
+      <div className="relative overflow-hidden bg-[#F8F8F8]" style={{ aspectRatio: '3/4' }}>
+
+        {/* Slideshow indicator lines at the top */}
+        {images.length > 1 && (
+          <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-25 flex gap-1 w-[80%] max-w-[64px]">
+            {images.map((_, idx) => (
+              <div
+                key={idx}
+                className="h-[2px] flex-1 rounded-full overflow-hidden bg-white/30"
+              >
+                <div
+                  className={cn(
+                    "h-full bg-white transition-all duration-300",
+                    idx === imgIndex ? "w-full" : "w-0"
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Top-left badges */}
+        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
+          {discount > 0 && (
+            <span className="discount-badge shadow-sm">-{discount}%</span>
+          )}
           {product.isNew && (
-            <span className="badge bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[10px] font-black uppercase tracking-wider shadow-lg">
+            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-display font-black uppercase tracking-wider bg-[#0A0A0A] text-white">
               New
             </span>
           )}
-          {product.isFeatured && !product.isNew && (
-            <span className="badge bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-wider shadow-lg">
-              Best Seller
+          {product.isFeatured && !product.isNew && !product.flashSalePrice && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-display font-black uppercase tracking-wider bg-amber-500 text-white">
+              <TrendingUp className="h-2 w-2" />
+              Hot
             </span>
           )}
           {product.flashSalePrice && (
-            <span className="badge bg-gradient-to-r from-red-500 to-primary-500 text-white text-[10px] font-black uppercase tracking-wider shadow-lg flex items-center gap-1">
-              <Zap className="h-2.5 w-2.5" />
-              Flash Sale
-            </span>
-          )}
-          {discount > 0 && !product.flashSalePrice && (
-            <span className="badge bg-red-500 text-white text-[10px] font-black shadow-lg">
-              -{discount}%
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-display font-black uppercase tracking-wider bg-primary-600 text-white">
+              <Zap className="h-2 w-2 fill-white" />
+              Sale
             </span>
           )}
         </div>
 
-        {/* Stock badge */}
-        {product.stockStatus !== 'in_stock' && STOCK_BADGE[product.stockStatus] && (
-          <div className="absolute top-3 right-12 z-10">
-            <span className={cn('badge text-[10px]', STOCK_BADGE[product.stockStatus].className)}>
-              {STOCK_BADGE[product.stockStatus].label}
+        {/* Low stock */}
+        {isLowStock && (
+          <div className="absolute top-2.5 right-10 z-10">
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-display font-black uppercase bg-amber-100 text-amber-700">
+              Terbatas
             </span>
           </div>
         )}
 
-        {/* Wishlist */}
+        {/* Wishlist — always visible */}
         <button
           onClick={handleWishlist}
           className={cn(
-            'absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full backdrop-blur-sm shadow-md transition-all hover:scale-110 active:scale-95',
+            'absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full transition-all duration-150 shadow-sm',
             wishlisted
-              ? 'bg-primary-500 text-white'
-              : 'bg-white/90 text-gray-500 hover:bg-primary-50 hover:text-primary-500 opacity-0 group-hover:opacity-100'
+              ? 'bg-primary-600 text-white shadow-primary-200'
+              : 'bg-white text-gray-400 hover:text-primary-500'
           )}
-          aria-label={wishlisted ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
+          aria-label={wishlisted ? 'Hapus wishlist' : 'Simpan ke wishlist'}
         >
-          <Heart className={cn('h-4 w-4', wishlisted && 'fill-current')} />
+          <Heart className={cn('h-3.5 w-3.5', wishlisted && 'fill-current')} />
         </button>
 
-        {/* Product Image */}
-        <img
-          src={product.thumbnailUrl}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-          loading="lazy"
-        />
+        {/* Product image */}
+        <div className="absolute inset-0">
+          <img
+            src={images[imgIndex]}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            loading="lazy"
+          />
+        </div>
 
-        {/* Hover Action */}
-        {product.stockStatus !== 'out_of_stock' && (
-          <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0 z-20">
+        {/* Add to Cart — slides up from bottom */}
+        {!isOutOfStock && (
+          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200 z-20">
             <button
               onClick={handleAddToCart}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white/95 backdrop-blur-sm text-gray-900 font-semibold rounded-2xl shadow-lg hover:bg-gradient-primary hover:text-white transition-all duration-200 border-none text-sm"
+              className="w-full flex items-center justify-center gap-1.5 h-10 rounded-2xl bg-dark text-white text-[10px] font-display font-bold uppercase tracking-wider hover:bg-primary-600 transition-colors"
             >
-              <ShoppingCart className="h-4 w-4" />
-              Tambah ke Keranjang
+              <ShoppingCart className="h-3.5 w-3.5" />
+              + Keranjang
             </button>
           </div>
         )}
 
-        {/* Out of stock overlay */}
-        {product.stockStatus === 'out_of_stock' && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
-            <span className="bg-gray-900/80 text-white text-sm font-bold px-4 py-2 rounded-full">
-              Stok Habis
+        {/* Out of stock */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">
+            <span className="bg-[#0A0A0A]/80 text-white text-[11px] font-display font-black uppercase tracking-wide px-3 py-1.5 rounded-lg">
+              Sold Out
             </span>
           </div>
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col p-4">
+      {/* ── Info Area ── */}
+      <div className="flex flex-1 flex-col p-3 gap-1">
         {/* Category */}
-        <p className="text-xs text-primary-500 font-semibold mb-1">{product.category.name}</p>
+        <p className="text-[10px] font-display font-bold uppercase tracking-[0.1em] text-gray-400 truncate">
+          {product.category.name}
+        </p>
 
         {/* Name */}
-        <h3 className="line-clamp-2 font-bold text-gray-900 text-sm leading-snug group-hover:text-primary-700 transition-colors font-heading mb-2">
+        <h3 className="text-xs sm:text-[13px] font-body font-semibold text-[#0A0A0A] line-clamp-2 leading-snug group-hover:text-primary-600 transition-colors">
           {product.name}
         </h3>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  'h-3.5 w-3.5',
-                  i < Math.floor(product.ratingAverage)
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-gray-200 fill-gray-200'
-                )}
-              />
-            ))}
+        {/* Rating row */}
+        {product.totalReviews > 0 && (
+          <div className="flex items-center gap-1">
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    'h-2.5 w-2.5',
+                    i < Math.floor(product.ratingAverage)
+                      ? 'text-amber-400 fill-amber-400'
+                      : 'text-gray-200 fill-gray-200'
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-gray-400 font-body">({product.totalReviews})</span>
           </div>
-          <span className="text-xs font-medium text-gray-500">
-            ({product.totalReviews})
-          </span>
-        </div>
+        )}
 
         {/* Price */}
-        <div className="mt-auto">
-          {product.flashSalePrice ? (
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-lg font-black text-red-600">
-                {formatCurrency(product.flashSalePrice)}
-              </span>
-              <span className="text-xs text-gray-400 line-through">
-                {formatCurrency(product.price)}
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-lg font-black bg-gradient-to-r from-gray-900 to-primary-700 bg-clip-text text-transparent">
-                {formatCurrency(product.price)}
-              </span>
-              {product.comparePrice && (
-                <span className="text-xs text-gray-400 line-through">
-                  {formatCurrency(product.comparePrice)}
-                </span>
-              )}
-            </div>
+        <div className="mt-auto pt-1.5 flex items-baseline gap-1.5 flex-wrap">
+          <span className={cn(
+            'text-sm sm:text-base font-display font-black tracking-tight',
+            product.flashSalePrice ? 'text-primary-600' : 'text-[#0A0A0A]'
+          )}>
+            {formatCurrency(displayPrice)}
+          </span>
+          {originalPrice && (
+            <span className="text-[11px] text-gray-400 line-through font-body">
+              {formatCurrency(originalPrice)}
+            </span>
           )}
         </div>
       </div>

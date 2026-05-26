@@ -7,6 +7,15 @@ const mockUser = (
   phone: '081234567890',
   isEmailVerified: true,
   createdAt: new Date().toISOString(),
+  gender: 'male',
+  birthDate: '1995-10-15',
+  stylePreference: 'Casual Modest',
+  sizePreference: 'M',
+  loyaltyPoints: 1250,
+  loyaltyTier: 'GOLD',
+  voucherCount: 4,
+  wishlistCount: 3,
+  orderCount: 12,
   ...overrides,
 });
 

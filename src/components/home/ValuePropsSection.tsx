@@ -1,52 +1,62 @@
-import { Truck, ShieldCheck, RefreshCw, Headphones, Sparkles } from 'lucide-react';
+import { Truck, ShieldCheck, RefreshCw, Headphones } from 'lucide-react';
 
-const VALUE_PROPS = [
+const PROPS = [
   {
     icon: Truck,
     title: 'Gratis Ongkir',
-    desc: 'Pembelian ≥ Rp 500.000',
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
+    desc: 'Min. belanja 500K',
+    emoji: '📦',
+    accent: 'from-primary-100 to-primary-50',
   },
   {
     icon: ShieldCheck,
-    title: 'Garansi Ori',
-    desc: 'Produk 100% original',
-    color: 'text-green-600',
-    bg: 'bg-green-50',
+    title: '100% Original',
+    desc: 'Garansi keaslian',
+    emoji: '✨',
+    accent: 'from-violet-100 to-primary-50',
   },
   {
     icon: RefreshCw,
-    title: 'Easy Retur',
-    desc: 'Retur 30 hari tanpa ribet',
-    color: 'text-amber-600',
-    bg: 'bg-amber-50',
+    title: 'Retur 30 Hari',
+    desc: 'Tanpa ribet',
+    emoji: '💗',
+    accent: 'from-pink-100 to-rose-50',
   },
   {
     icon: Headphones,
-    title: 'CS 24/7',
-    desc: 'Siap membantu kapanpun',
-    color: 'text-primary-600',
-    bg: 'bg-primary-50',
+    title: 'CS Bestie',
+    desc: 'Siap bantu 24/7',
+    emoji: '💬',
+    accent: 'from-amber-50 to-primary-50',
   },
 ];
 
 export function ValuePropsSection() {
   return (
-    <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
-      <div className="container-main">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {VALUE_PROPS.map((prop) => (
+    <section className="border-b border-primary-100/60 bg-white/70 backdrop-blur-sm">
+      <div className="container-main py-6 sm:py-8">
+        <p className="text-center text-[10px] font-display font-black uppercase tracking-[0.22em] text-primary-600 mb-5">
+          Kenapa girls suka belanja di sini
+        </p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {PROPS.map((p) => (
             <div
-              key={prop.title}
-              className="flex items-center gap-3 sm:gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-md transition-all duration-300 group"
+              key={p.title}
+              className="bento-card flex items-center gap-3 p-4 sm:p-5 group"
             >
-              <div className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 ${prop.bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <prop.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${prop.color}`} />
+              <div
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${p.accent} text-lg group-hover:scale-105 transition-transform`}
+                aria-hidden
+              >
+                {p.emoji}
               </div>
-              <div>
-                <p className="font-bold text-gray-900 text-sm sm:text-base leading-tight">{prop.title}</p>
-                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{prop.desc}</p>
+              <div className="min-w-0">
+                <p className="font-display font-bold text-xs sm:text-sm text-dark leading-tight">
+                  {p.title}
+                </p>
+                <p className="text-[10px] sm:text-[11px] text-gray-500 font-body mt-0.5">
+                  {p.desc}
+                </p>
               </div>
             </div>
           ))}

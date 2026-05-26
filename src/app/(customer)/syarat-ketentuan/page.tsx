@@ -1,34 +1,40 @@
 import type { Metadata } from 'next';
+import { InfoPageLayout } from '@/components/customer/InfoPageLayout';
+import { InfoSection } from '@/components/customer/InfoSection';
 
 export const metadata: Metadata = {
-  title: 'Syarat & Ketentuan | benangbaju',
-  description: 'Syarat dan ketentuan layanan benangbaju.',
+  title: 'Syarat & Ketentuan | ansania',
+  description: 'Syarat dan ketentuan layanan ansania.',
 };
 
 export default function SyaratKetentuanPage() {
   return (
-    <div className="container-main py-12 min-h-[70vh]">
-      <div className="max-w-3xl mx-auto card p-8 sm:p-12">
-        <h1 className="text-3xl font-black font-heading text-gray-900 mb-6">Syarat & Ketentuan</h1>
-        <div className="prose prose-gray max-w-none text-gray-600">
-          <p>
-            Dengan mengakses dan berbelanja di benangbaju, Anda dianggap telah membaca, memahami, dan menyetujui seluruh syarat dan ketentuan di bawah ini.
-          </p>
-          
-          <h3 className="font-bold text-gray-900 mt-6 mb-2">Pemesanan & Pembayaran</h3>
-          <ul>
-            <li>Harga yang tertera pada produk belum termasuk ongkos kirim.</li>
-            <li>Pesanan baru akan diproses setelah pembayaran berhasil diverifikasi oleh sistem.</li>
-            <li>Jika dalam waktu 1x24 jam pembayaran belum diselesaikan, pesanan akan dibatalkan otomatis oleh sistem.</li>
-          </ul>
+    <InfoPageLayout
+      eyebrow="Terms"
+      title="Syarat & Ketentuan"
+      description="Aturan pakai layanan ansania biar belanja tetap fair & aman."
+    >
+      <p className="text-sm text-gray-500 font-body leading-relaxed">
+        Dengan akses & belanja di ansania, kamu dianggap setuju syarat berikut.
+      </p>
 
-          <h3 className="font-bold text-gray-900 mt-6 mb-2">Informasi Produk</h3>
-          <p>Kami berusaha menampilkan warna produk seakurat mungkin. Namun, karena perbedaan resolusi layar perangkat, kami tidak dapat menjamin warna yang Anda lihat 100% sama dengan produk asli.</p>
+      <InfoSection title="Pemesanan & pembayaran">
+        <ul className="list-disc pl-5 space-y-1.5 mt-2">
+          <li>Harga belum termasuk ongkir</li>
+          <li>Pesanan diproses setelah pembayaran terverifikasi</li>
+          <li>Tanpa bayar dalam 24 jam, pesanan dibatalkan otomatis</li>
+        </ul>
+      </InfoSection>
 
-          <h3 className="font-bold text-gray-900 mt-6 mb-2">Hak Cipta</h3>
-          <p>Seluruh konten di website ini termasuk desain, logo, teks, dan gambar adalah milik benangbaju dan dilindungi oleh undang-undang hak cipta.</p>
-        </div>
-      </div>
-    </div>
+      <InfoSection title="Info produk">
+        <p>
+          Warna di layar bisa sedikit beda karena resolusi device — bukan cacat produk.
+        </p>
+      </InfoSection>
+
+      <InfoSection title="Hak cipta">
+        <p>Semua konten website (desain, logo, teks, gambar) milik ansania & dilindungi hukum.</p>
+      </InfoSection>
+    </InfoPageLayout>
   );
 }

@@ -30,25 +30,32 @@ export default function AccountLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen py-8 sm:py-12">
       <div className="container-main">
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
+        <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
           <aside className="lg:col-span-1">
-            <div className="card p-6">
-              {/* User Info */}
-              <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                <div className="w-14 h-14 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-xl uppercase shadow-md shadow-primary-500/20">
-                  {user?.name?.charAt(0) || 'U'}
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 line-clamp-1">{user?.name || 'Pengguna'}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-1">{user?.email}</p>
+            <div className="overflow-hidden rounded-3xl border border-primary-100/80 bg-white shadow-[0_20px_60px_-40px_rgba(245,45,110,0.35)]">
+              <div className="relative bg-gradient-to-br from-primary-600 via-primary-500 to-accent-violet px-6 py-6 text-white">
+                <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+                <div className="relative flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 font-display text-xl font-black uppercase backdrop-blur-sm ring-2 ring-white/30">
+                    {user?.name?.charAt(0) || 'U'}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display font-black text-sm tracking-tight line-clamp-1">
+                      {user?.name || 'Pengguna'}
+                    </h3>
+                    <p className="text-[11px] text-white/70 font-body mt-0.5 line-clamp-1">
+                      {user?.email}
+                    </p>
+                    <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-accent-lime/90 px-2 py-0.5 text-[9px] font-display font-black uppercase tracking-wider text-dark">
+                      ★ {user?.loyaltyTier || 'Gold'} Member
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Navigation */}
-              <nav className="space-y-1">
+              <nav className="space-y-1 p-4">
                 {navItems.map((item) => {
                   const isActive = pathname.startsWith(item.href);
                   return (
@@ -56,13 +63,15 @@ export default function AccountLayout({
                       key={item.label}
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
+                        'flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-display font-bold transition-all',
                         isActive
-                          ? 'bg-primary-50 text-primary-600 font-bold'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-primary-50 text-primary-600'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-dark'
                       )}
                     >
-                      <item.icon className={cn('h-5 w-5', isActive ? 'text-primary-600' : 'text-gray-400')} />
+                      <item.icon
+                        className={cn('h-4 w-4', isActive ? 'text-primary-500' : 'text-gray-400')}
+                      />
                       {item.label}
                     </Link>
                   );
@@ -70,18 +79,17 @@ export default function AccountLayout({
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all mt-4"
+                  className="mt-2 flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-xs font-display font-bold text-red-600 hover:bg-red-50 transition-all"
                 >
-                  <LogOut className="h-5 w-5 text-red-500" />
+                  <LogOut className="h-4 w-4" />
                   Keluar
                 </button>
               </nav>
             </div>
           </aside>
 
-          {/* Main Content */}
           <main className="lg:col-span-3">
-            <div className="card p-6 sm:p-8">
+            <div className="rounded-3xl border border-primary-100/60 bg-white/95 p-6 sm:p-8 shadow-[0_16px_48px_-32px_rgba(0,0,0,0.08)]">
               {children}
             </div>
           </main>

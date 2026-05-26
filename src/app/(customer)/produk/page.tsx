@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Filter, Search, ChevronRight, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { Filter, SlidersHorizontal } from 'lucide-react';
 import { ProductCard } from '@/components/shared/ProductCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { PageHero } from '@/components/customer/PageHero';
 import { ROUTES } from '@/constants/routes';
 import { getProducts } from '@/services/api/products';
 import { getCategories } from '@/services/api/categories';
@@ -40,67 +41,73 @@ export default async function ProductListingPage({
   const sort = parseSort(
     typeof resolvedSearchParams.sort === 'string' ? resolvedSearchParams.sort : undefined,
   );
-  const search = typeof resolvedSearchParams.search === 'string' ? resolvedSearchParams.search : undefined;
+  const q =
+    typeof resolvedSearchParams.q === 'string'
+      ? resolvedSearchParams.q
+      : typeof resolvedSearchParams.search === 'string'
+        ? resolvedSearchParams.search
+        : undefined;
 
-  // Fetch data
   const [productsRes, categoriesRes] = await Promise.allSettled([
-    getProducts({ page, limit: 12, category, sort, q: search }),
-    getCategories()
+    getProducts({ page, limit: 12, category, sort, q }),
+    getCategories(),
   ]);
 
-  const productsData = productsRes.status === 'fulfilled' && productsRes.value ? productsRes.value : { data: [], meta: { total: 0, lastPage: 1 } };
+  const productsData =
+    productsRes.status === 'fulfilled' && productsRes.value
+      ? productsRes.value
+      : { data: [], meta: { total: 0, lastPage: 1 } };
   const products = productsData.data || [];
   const meta = productsData.meta || { total: 0, lastPage: 1 };
-
   const categories = categoriesRes.status === 'fulfilled' && categoriesRes.value ? categoriesRes.value : [];
 
-  return (
-    <div className="min-h-screen bg-gray-50/50 pb-20">
-      {/* Header Banner */}
-      <div className="bg-gradient-primary text-white py-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        <div className="absolute top-0 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 mb-4">
-              <Sparkles className="h-4 w-4 text-primary-200" />
-              <span className="text-sm font-semibold text-primary-50">Koleksi Terbaru</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-black font-heading mb-3">
-              {category ? `Kategori: ${category}` : search ? `Pencarian: ${search}` : 'Semua Produk'}
-            </h1>
-            <p className="text-primary-100 text-lg">
-              Temukan gaya terbaik Anda dengan koleksi fashion premium kami yang dirancang khusus untuk Anda.
-            </p>
-          </div>
-        </div>
-      </div>
+  const pageTitle = category
+    ? `Kategori: ${category}`
+    : q
+      ? `Pencarian: ${q}`
+      : 'Semua Produk';
 
-      <div className="container-main mt-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filter */}
+  return (
+    <div className="min-h-screen">
+      <PageHero
+        badge="Curated"
+        eyebrow="Catalog · ansania"
+        title={pageTitle}
+        description="Temukan gaya modest modern — material premium, nyaman untuk aktivitas harian."
+        size="compact"
+      />
+
+      <div className="container-main py-8 sm:py-10">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <aside className="w-full lg:w-64 flex-shrink-0">
-            <div className="card p-5 sticky top-24">
-              <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
-                <Filter className="h-5 w-5 text-primary-600" />
-                <h2 className="font-bold text-gray-900">Filter</h2>
+            <div className="rounded-3xl border border-primary-100/80 bg-white p-5 sm:p-6 sticky top-28 shadow-[0_20px_50px_-40px_rgba(245,45,110,0.35)]">
+              <div className="flex items-center gap-2 mb-5 pb-4 border-b border-primary-100/60">
+                <Filter className="h-4 w-4 text-primary-500" />
+                <h2 className="font-display font-bold text-xs text-dark uppercase tracking-wider">Filter</h2>
               </div>
 
-              {/* Categories */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-sm text-gray-900 mb-3 uppercase tracking-wider">Kategori</h3>
-                <div className="space-y-2">
+              <div className="mb-6">
+                <h3 className="section-label mb-3">Kategori</h3>
+                <div className="space-y-1">
                   <Link
                     href={ROUTES.PRODUCTS}
-                    className={`block text-sm py-1.5 transition-colors ${!category ? 'text-primary-600 font-bold' : 'text-gray-600 hover:text-primary-600'}`}
+                    className={`block rounded-xl px-3 py-2 text-xs transition-colors ${
+                      !category
+                        ? 'bg-primary-50 text-primary-600 font-display font-bold'
+                        : 'text-gray-500 font-body hover:bg-gray-50 hover:text-dark'
+                    }`}
                   >
                     Semua Kategori
                   </Link>
-                  {categories.map((cat: any) => (
+                  {categories.map((cat: { id: number; slug: string; name: string }) => (
                     <Link
                       key={cat.id}
                       href={`${ROUTES.PRODUCTS}?category=${cat.slug}`}
-                      className={`block text-sm py-1.5 transition-colors ${category === cat.slug ? 'text-primary-600 font-bold' : 'text-gray-600 hover:text-primary-600'}`}
+                      className={`block rounded-xl px-3 py-2 text-xs transition-colors ${
+                        category === cat.slug
+                          ? 'bg-primary-50 text-primary-600 font-display font-bold'
+                          : 'text-gray-500 font-body hover:bg-gray-50 hover:text-dark'
+                      }`}
                     >
                       {cat.name}
                     </Link>
@@ -108,23 +115,26 @@ export default async function ProductListingPage({
                 </div>
               </div>
 
-              {/* Urutkan */}
               <div>
-                <h3 className="font-semibold text-sm text-gray-900 mb-3 uppercase tracking-wider">Urutkan</h3>
-                <div className="space-y-2">
+                <h3 className="section-label mb-3">Urutkan</h3>
+                <div className="space-y-1">
                   {[
                     { value: 'newest', label: 'Terbaru' },
-                    { value: 'price_asc', label: 'Harga: Rendah ke Tinggi' },
-                    { value: 'price_desc', label: 'Harga: Tinggi ke Rendah' },
+                    { value: 'price_asc', label: 'Harga ↑' },
+                    { value: 'price_desc', label: 'Harga ↓' },
                   ].map((option) => (
                     <Link
                       key={option.value}
                       href={`${ROUTES.PRODUCTS}?${new URLSearchParams({
                         ...(category ? { category } : {}),
-                        ...(search ? { search } : {}),
+                        ...(q ? { q } : {}),
                         sort: option.value,
                       }).toString()}`}
-                      className={`block text-sm py-1.5 transition-colors ${sort === option.value ? 'text-primary-600 font-bold' : 'text-gray-600 hover:text-primary-600'}`}
+                      className={`block rounded-xl px-3 py-2 text-xs transition-colors ${
+                        sort === option.value
+                          ? 'bg-primary-50 text-primary-600 font-display font-bold'
+                          : 'text-gray-500 font-body hover:bg-gray-50 hover:text-dark'
+                      }`}
                     >
                       {option.label}
                     </Link>
@@ -134,48 +144,45 @@ export default async function ProductListingPage({
             </div>
           </aside>
 
-          {/* Main Content */}
-          <main className="flex-1">
-            {/* Top Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-              <p className="text-gray-600 text-sm">
-                Menampilkan <span className="font-bold text-gray-900">{products.length}</span> dari <span className="font-bold text-gray-900">{meta.total}</span> produk
+          <main className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
+              <p className="text-xs font-body text-gray-500">
+                <span className="font-display font-bold text-dark">{products.length}</span> dari{' '}
+                <span className="font-display font-bold text-dark">{meta.total}</span> produk
               </p>
-
-              {/* Mobile Filter Toggle */}
-              <button className="lg:hidden flex items-center gap-2 btn-outline rounded-xl py-2 px-4 text-sm w-full sm:w-auto">
-                <SlidersHorizontal className="h-4 w-4" />
-                Filter & Urutkan
+              <button
+                type="button"
+                className="lg:hidden flex items-center justify-center gap-2 rounded-full border border-primary-200 py-2.5 px-5 text-xs font-display font-bold text-dark w-full sm:w-auto hover:bg-primary-50 transition-colors"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                Filter
               </button>
             </div>
 
-            {/* Product Grid */}
             {products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {products.map((product: any) => (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                  {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
-
-                {/* Pagination */}
                 {meta.lastPage > 1 && (
                   <div className="mt-12 flex justify-center">
                     <Pagination
                       currentPage={page}
                       totalPages={meta.lastPage}
                       baseUrl={ROUTES.PRODUCTS}
-                      searchParams={{ category, sort, search }}
+                      searchParams={{ category, sort, q }}
                     />
                   </div>
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-3xl border border-gray-100 p-12">
+              <div className="rounded-3xl border border-primary-100/60 bg-white p-8 sm:p-12">
                 <EmptyState
                   title="Produk Tidak Ditemukan"
-                  description="Maaf, tidak ada produk yang sesuai dengan filter pencarian Anda. Coba hapus filter atau gunakan kata kunci lain."
-                  actionLabel="Hapus Semua Filter"
+                  description="Coba hapus filter atau gunakan kata kunci lain."
+                  actionLabel="Lihat Semua Produk"
                   actionHref={ROUTES.PRODUCTS}
                 />
               </div>

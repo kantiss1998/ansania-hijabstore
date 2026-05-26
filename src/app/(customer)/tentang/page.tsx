@@ -1,55 +1,60 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { Heart, Star, Target, ShieldCheck } from 'lucide-react';
+import { PageHero } from '@/components/customer/PageHero';
 
 export const metadata: Metadata = {
   title: 'Tentang Kami | ansania',
-  description: 'Mengenal lebih dekat ansania, destinasi fashion muslim premium pilihan wanita Indonesia.',
+  description: 'Mengenal ansania — fashion muslim premium untuk generasi modern.',
 };
+
+const VALUES = [
+  { icon: Heart, title: 'Dibuat dengan cinta', desc: 'Setiap jahitan penuh detail & dedikasi.' },
+  { icon: ShieldCheck, title: 'Kualitas premium', desc: 'Material nyaman untuk aktivitas seharian.' },
+  { icon: Star, title: 'Desain fresh', desc: 'Selalu update tren modest global.' },
+  { icon: Target, title: 'Fokus kamu', desc: 'CS bestie siap bantu kapan pun.' },
+];
 
 export default function TentangKamiPage() {
   return (
-    <div className="pb-20">
-      {/* Hero Section */}
-      <section className="bg-gradient-primary text-white py-20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        <div className="absolute top-0 right-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="container-main relative z-10 text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-black font-heading mb-6 leading-tight">Mendefinisikan Ulang Fashion Muslim Premium</h1>
-          <p className="text-primary-100 text-lg md:text-xl leading-relaxed">
-            Berawal dari mimpi kecil di tahun 2018, ansania hadir untuk menemani perjalanan setiap wanita muslim Indonesia tampil percaya diri, elegan, dan tetap syari.
-          </p>
-        </div>
-      </section>
+    <div>
+      <PageHero
+        align="center"
+        eyebrow="About · ansania"
+        title="Modest fashion, generasi sekarang"
+        description="Sejak 2018, ansania menemani perjalanan wanita muslim Indonesia tampil percaya diri, elegan, dan tetap syar'i."
+      />
 
-      {/* Our Story */}
-      <section className="py-16">
+      <section className="py-14 sm:py-16">
         <div className="container-main">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="relative aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
-              <img 
-                src="https://images.unsplash.com/photo-1594912959827-020abcb01b05?q=80&w=2070&auto=format&fit=crop" 
-                alt="Workshop ansania" 
-                className="w-full h-full object-cover"
+          <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div className="relative aspect-[4/5] rounded-4xl overflow-hidden border border-primary-100 shadow-[0_24px_60px_-32px_rgba(245,45,110,0.35)]">
+              <img
+                src="https://images.unsplash.com/photo-1594912959827-020abcb01b05?q=80&w=2070&auto=format&fit=crop"
+                alt="Workshop ansania"
+                className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent" />
-              <div className="absolute bottom-8 left-8 text-white">
-                <p className="font-bold text-2xl font-heading">Kualitas adalah Prioritas</p>
-                <p className="text-white/80">Proses jahit tangan eksklusif</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 text-white">
+                <p className="font-display font-black text-lg tracking-tight">Quality first</p>
+                <p className="text-xs text-white/70 font-body mt-1">Jahitan eksklusif, material premium</p>
               </div>
             </div>
-            
+
             <div>
-              <h2 className="text-3xl font-black font-heading text-gray-900 mb-6">Cerita Kami</h2>
-              <div className="space-y-4 text-gray-600 leading-relaxed text-lg">
+              <p className="section-label mb-2">Our story</p>
+              <h2 className="section-title mb-6">Cerita kami</h2>
+              <div className="space-y-4 text-sm text-gray-500 font-body leading-relaxed">
                 <p>
-                  Kami percaya bahwa pakaian lebih dari sekadar kain yang menutupi tubuh. Ia adalah ekspresi diri, cerminan kepribadian, dan komitmen terhadap keyakinan.
+                  Pakaian lebih dari kain — ekspresi diri, cerminan keyakinan, dan cara kamu tampil di
+                  dunia.
                 </p>
                 <p>
-                  Setiap koleksi ansania dirancang secara khusus oleh desainer lokal berbakat yang memahami betul iklim dan kebutuhan wanita di Indonesia. Kami memilih bahan premium yang sejuk, jatuh dengan sempurna, dan tahan lama.
+                  Setiap koleksi dirancang desainer lokal yang paham iklim & kebutuhan wanita
+                  Indonesia. Bahan sejuk, jatuh rapi, tahan lama.
                 </p>
                 <p>
-                  Hingga hari ini, ansania telah dipercaya oleh lebih dari 500.000 pelanggan setia di seluruh penjuru negeri, dan terus bertumbuh menjadi kiblat trend fashion muslim masa kini.
+                  500K+ pelanggan setia di seluruh Indonesia — dan kami terus grow jadi referensi
+                  modest fashion Gen Z.
                 </p>
               </div>
             </div>
@@ -57,27 +62,20 @@ export default function TentangKamiPage() {
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-16 bg-gray-50/50 border-y border-gray-100">
+      <section className="py-14 sm:py-16 bg-primary-50/30 border-y border-primary-100/60">
         <div className="container-main">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-black font-heading text-gray-900 mb-4">Nilai-Nilai Kami</h2>
-            <p className="text-gray-500 text-lg">Prinsip yang selalu kami pegang teguh dalam setiap produk yang kami hasilkan.</p>
+          <div className="text-center max-w-xl mx-auto mb-10">
+            <p className="section-label mb-2 justify-center">Values</p>
+            <h2 className="section-title">Yang kami pegang</h2>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { icon: Heart, title: 'Dibuat dengan Cinta', desc: 'Setiap jahitan dikerjakan dengan penuh dedikasi dan perhatian pada detail.' },
-              { icon: ShieldCheck, title: 'Kualitas Premium', desc: 'Menggunakan material bahan nomor satu yang nyaman dipakai beraktivitas seharian.' },
-              { icon: Star, title: 'Inovasi Desain', desc: 'Selalu menghadirkan desain yang fresh dan up-to-date dengan tren global terkini.' },
-              { icon: Target, title: 'Fokus Pelanggan', desc: 'Kepuasan dan kenyamanan Anda selalu menjadi prioritas utama tim layanan kami.' },
-            ].map((val, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center hover:-translate-y-1 transition-transform">
-                <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <val.icon className="h-8 w-8" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {VALUES.map((val) => (
+              <div key={val.title} className="bento-card p-6 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-dark text-white">
+                  <val.icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-bold text-xl text-gray-900 mb-3">{val.title}</h3>
-                <p className="text-gray-500 leading-relaxed">{val.desc}</p>
+                <h3 className="font-display font-bold text-sm text-dark mb-2">{val.title}</h3>
+                <p className="text-xs text-gray-500 font-body leading-relaxed">{val.desc}</p>
               </div>
             ))}
           </div>

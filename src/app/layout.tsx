@@ -45,15 +45,16 @@ export default function RootLayout({
           toastOptions={{
             duration: 3000,
             style: {
-              background: '#1C1917',
-              color: '#FAFAF9',
-              borderRadius: '12px',
-              fontSize: '14px',
+              background: '#0A0A0A',
+              color: '#fff',
+              borderRadius: '9999px',
+              fontSize: '13px',
+              fontFamily: "'Space Grotesk', sans-serif",
               fontWeight: '500',
-              padding: '12px 16px',
+              padding: '12px 20px',
             },
             success: {
-              iconTheme: { primary: '#BA3565', secondary: '#fff' },
+              iconTheme: { primary: '#F52D6E', secondary: '#fff' },
             },
           }}
         />

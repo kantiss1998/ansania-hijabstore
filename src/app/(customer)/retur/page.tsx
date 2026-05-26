@@ -1,34 +1,39 @@
 import type { Metadata } from 'next';
+import { InfoPageLayout } from '@/components/customer/InfoPageLayout';
+import { InfoSection } from '@/components/customer/InfoSection';
 
 export const metadata: Metadata = {
-  title: 'Kebijakan Retur | benangbaju',
-  description: 'Syarat dan ketentuan pengembalian barang di benangbaju.',
+  title: 'Kebijakan Retur | ansania',
+  description: 'Syarat dan ketentuan pengembalian barang di ansania.',
 };
 
 export default function ReturPage() {
   return (
-    <div className="container-main py-12 min-h-[70vh]">
-      <div className="max-w-3xl mx-auto card p-8 sm:p-12">
-        <h1 className="text-3xl font-black font-heading text-gray-900 mb-6">Kebijakan Retur (Pengembalian Barang)</h1>
-        <div className="prose prose-gray max-w-none text-gray-600">
-          <p>Kepuasan Anda adalah prioritas kami. Jika Anda tidak puas dengan pembelian Anda, kami siap membantu.</p>
-          
-          <h3 className="font-bold text-gray-900 mt-6 mb-2">Syarat Pengembalian</h3>
-          <ul>
-            <li>Barang dapat dikembalikan maksimal 7 hari setelah diterima.</li>
-            <li>Barang harus dalam kondisi baru, belum dicuci, tidak berbau, dan tag label masih terpasang.</li>
-            <li>Barang diskon atau Flash Sale tidak dapat ditukar atau dikembalikan, kecuali terdapat cacat produksi.</li>
-          </ul>
+    <InfoPageLayout
+      eyebrow="Returns"
+      title="Kebijakan Retur"
+      description="Retur mudah dalam 30 hari — syarat & prosesnya di sini."
+    >
+      <p className="text-sm text-gray-500 font-body leading-relaxed">
+        Kepuasan kamu prioritas kami. Kalau ada masalah, tim CS siap bantu.
+      </p>
 
-          <h3 className="font-bold text-gray-900 mt-6 mb-2">Proses Retur</h3>
-          <ol>
-            <li>Hubungi Customer Service kami via WhatsApp dengan menyertakan Nomor Pesanan dan video unboxing.</li>
-            <li>CS kami akan memberikan instruksi pengembalian beserta alamat retur.</li>
-            <li>Kirim barang kembali ke alamat kami menggunakan kurir pilihan Anda.</li>
-            <li>Setelah barang kami terima dan periksa, dana akan dikembalikan dalam waktu 3-5 hari kerja.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
+      <InfoSection title="Syarat retur">
+        <ul className="list-disc pl-5 space-y-1.5 mt-2">
+          <li>Maks. 7 hari setelah barang diterima</li>
+          <li>Kondisi baru, belum dicuci, tag masih terpasang</li>
+          <li>Item flash sale tidak bisa retur kecuali cacat produksi</li>
+        </ul>
+      </InfoSection>
+
+      <InfoSection title="Cara retur">
+        <ol className="list-decimal pl-5 space-y-1.5 mt-2">
+          <li>Chat CS via WhatsApp + nomor pesanan & video unboxing</li>
+          <li>Ikuti instruksi alamat retur dari tim kami</li>
+          <li>Kirim paket via kurir pilihan kamu</li>
+          <li>Refund 3–5 hari kerja setelah barang lolos QC</li>
+        </ol>
+      </InfoSection>
+    </InfoPageLayout>
   );
 }

@@ -11,6 +11,15 @@ export interface User {
   avatarUrl?: string;
   isEmailVerified: boolean;
   createdAt: string;
+  gender?: 'female' | 'male' | 'other';
+  birthDate?: string;
+  stylePreference?: string;
+  sizePreference?: string;
+  loyaltyPoints?: number;
+  loyaltyTier?: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+  voucherCount?: number;
+  wishlistCount?: number;
+  orderCount?: number;
 }
 
 export interface Address {

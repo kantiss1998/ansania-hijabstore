@@ -10,17 +10,32 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ title, description, actionLabel, actionHref, className }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  actionLabel,
+  actionHref,
+  className,
+}: EmptyStateProps) {
   return (
-    <div className={cn("text-center py-12 flex flex-col items-center justify-center", className)}>
-      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-        <PackageX className="h-10 w-10 text-gray-300" />
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center py-14 text-center',
+        className
+      )}
+    >
+      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-50 border border-primary-100">
+        <PackageX className="h-9 w-9 text-primary-300" />
       </div>
-      <h3 className="text-xl font-bold font-heading text-gray-900 mb-2">{title}</h3>
-      <p className="text-sm text-gray-500 max-w-sm mb-6">{description}</p>
-      
+      <h3 className="font-display text-xl font-black text-dark tracking-tight mb-2">
+        {title}
+      </h3>
+      <p className="text-sm text-gray-500 font-body max-w-sm mb-6 leading-relaxed">
+        {description}
+      </p>
+
       {actionLabel && actionHref && (
-        <Link href={actionHref} className="btn-primary py-2.5 px-6 rounded-xl">
+        <Link href={actionHref} className="btn-pill-brand h-11 px-8 text-sm">
           {actionLabel}
         </Link>
       )}

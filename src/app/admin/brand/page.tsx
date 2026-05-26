@@ -6,7 +6,7 @@ import { Plus, Search, Edit2, Trash2, Award } from 'lucide-react';
 export default function AdminBrandPage() {
   const [brands] = useState([
     { id: 1, name: 'Ansania Premium', products: 45, status: 'active' },
-    { id: 2, name: 'Benangbaju Basic', products: 120, status: 'active' },
+    { id: 2, name: 'Ansania Basic', products: 120, status: 'active' },
     { id: 3, name: 'Zanza Signature', products: 15, status: 'active' },
   ]);
 

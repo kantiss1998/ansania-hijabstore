@@ -33,22 +33,23 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams }: P
       <Link
         href={getPageUrl(currentPage - 1)}
         className={cn(
-          'p-2 rounded-xl border border-gray-200 text-gray-500 hover:border-primary-500 hover:text-primary-600 transition-all',
-          currentPage <= 1 && 'opacity-50 pointer-events-none'
+          'flex h-10 w-10 items-center justify-center rounded-full border border-primary-200 text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-all',
+          currentPage <= 1 && 'opacity-40 pointer-events-none'
         )}
+        aria-label="Halaman sebelumnya"
       >
         <ChevronLeft className="h-5 w-5" />
       </Link>
-      
+
       <div className="flex gap-1">
         {pages.map((page) => (
           <Link
             key={page}
             href={getPageUrl(page)}
             className={cn(
-              'w-10 h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-all',
+              'flex h-10 w-10 items-center justify-center rounded-full text-sm font-display font-bold transition-all',
               currentPage === page
-                ? 'bg-primary-600 text-white shadow-md shadow-primary-500/20'
+                ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/25'
                 : 'text-gray-600 hover:bg-primary-50 hover:text-primary-600'
             )}
           >
@@ -60,9 +61,10 @@ export function Pagination({ currentPage, totalPages, baseUrl, searchParams }: P
       <Link
         href={getPageUrl(currentPage + 1)}
         className={cn(
-          'p-2 rounded-xl border border-gray-200 text-gray-500 hover:border-primary-500 hover:text-primary-600 transition-all',
-          currentPage >= totalPages && 'opacity-50 pointer-events-none'
+          'flex h-10 w-10 items-center justify-center rounded-full border border-primary-200 text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-all',
+          currentPage >= totalPages && 'opacity-40 pointer-events-none'
         )}
+        aria-label="Halaman berikutnya"
       >
         <ChevronRight className="h-5 w-5" />
       </Link>
