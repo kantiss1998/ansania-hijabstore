@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 const TABS = [
   { href: ROUTES.HOME, label: 'Home', icon: Home, match: (p: string) => p === '/' },
-  { href: ROUTES.PRODUCTS, label: 'Shop', icon: ShoppingBag, match: (p: string) => p.startsWith('/produk') },
+  { href: '#keranjang', label: 'Keranjang', icon: ShoppingBag, match: (p: string) => p === '#keranjang' },
   { href: ROUTES.FLASH_SALE, label: 'Sale', icon: Zap, match: (p: string) => p.startsWith('/flash-sale') },
   { href: ROUTES.ACCOUNT.WISHLIST, label: 'Wish', icon: Heart, match: (p: string) => p.includes('/wishlist') },
   { href: ROUTES.ACCOUNT.PROFILE, label: 'Akun', icon: User, match: (p: string) => p.startsWith('/akun') },
@@ -17,7 +17,7 @@ const TABS = [
 
 export function MobileBottomNav() {
   const pathname = usePathname();
-  const { items } = useCartStore();
+  const { items, openDrawer } = useCartStore();
   const cartCount = items.length;
 
   const hideOn = ['/checkout', '/masuk', '/daftar'];
@@ -32,19 +32,27 @@ export function MobileBottomNav() {
         <div className="flex items-stretch justify-around px-1 py-1.5">
           {TABS.map(({ href, label, icon: Icon, match }) => {
             const active = match(pathname);
-            const isShop = label === 'Shop';
-            const showBadge = isShop && cartCount > 0;
+            const isCart = label === 'Keranjang';
+            const showBadge = isCart && cartCount > 0;
+
+            const handleClick = (e: React.MouseEvent) => {
+              if (isCart) {
+                e.preventDefault();
+                openDrawer();
+              }
+            };
 
             return (
               <Link
                 key={href}
                 href={href}
+                onClick={handleClick}
                 className={cn(
                   'relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 transition-all duration-200',
                   active ? 'text-primary-600' : 'text-gray-400 hover:text-gray-700'
                 )}
               >
-                {active && (
+                {active && !isCart && (
                   <span className="absolute inset-x-2 top-1 h-8 rounded-xl bg-primary-50/90 -z-10" />
                 )}
                 <span className="relative">

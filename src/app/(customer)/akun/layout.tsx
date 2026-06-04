@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, MapPin, ShoppingBag, Heart, LogOut } from 'lucide-react';
+import { User, MapPin, ShoppingBag, Heart, LogOut, Bell } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,7 @@ export default function AccountLayout({
     { icon: User, label: 'Profil Saya', href: '/akun/profil' },
     { icon: MapPin, label: 'Alamat Pengiriman', href: '/akun/alamat' },
     { icon: ShoppingBag, label: 'Pesanan Saya', href: '/akun/pesanan' },
+    { icon: Bell, label: 'Notifikasi', href: '/akun/notifikasi' },
     { icon: Heart, label: 'Wishlist', href: '/akun/wishlist' },
   ];
 

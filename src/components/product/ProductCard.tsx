@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, ShoppingCart, Star, Zap, TrendingUp } from 'lucide-react';
 import { FC, useState, useEffect } from 'react';
 import { type ProductListItem } from '@/types/product.types';
@@ -182,17 +183,18 @@ const ProductCard: FC<Props> = ({ product, className }) => {
 
         {/* Product image */}
         <div className="absolute inset-0">
-          <img
+          <Image
             src={images[imgIndex]}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            loading="lazy"
+            fill
+            sizes="(max-width: 768px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
         </div>
 
         {/* Add to Cart — slides up from bottom */}
         {!isOutOfStock && (
-          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-200 z-20">
+          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-0 lg:translate-y-full group-hover:translate-y-0 transition-transform duration-200 z-20">
             <button
               onClick={handleAddToCart}
               className="w-full flex items-center justify-center gap-1.5 h-10 rounded-2xl bg-dark text-white text-[10px] font-display font-bold uppercase tracking-wider hover:bg-primary-600 transition-colors"

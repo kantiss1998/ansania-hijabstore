@@ -1,39 +1,52 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getOrders } from '@/services/api/orders';
-import { Loader2, Package, ChevronRight } from 'lucide-react';
+import { Loader2, Package } from 'lucide-react';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { ORDER_STATUS_LABEL, ORDER_STATUS_COLOR } from '@/types/order.types';
 import { AccountPageHeader } from '@/components/customer/AccountPageHeader';
+import { useQuery } from '@tanstack/react-query';
+import type { OrderStatus } from '@/types/order.types';
+
+interface OrdersListResponseItem {
+  id: number;
+  order_number: string;
+  created_at: string;
+  status: OrderStatus;
+  total_amount: number;
+  order_items: {
+    id: number;
+    price: number;
+    qty: number;
+    product: {
+      name: string;
+      thumbnail_url: string;
+    };
+    variant: {
+      sku: string;
+    };
+  }[];
+}
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const res = await getOrders(statusFilter ? { status: statusFilter } : undefined);
-        setOrders(res.data || []);
-      } catch (error) {
-        setOrders([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchOrders();
-  }, [statusFilter]);
+  const { data: ordersData, isLoading } = useQuery({
+    queryKey: ['orders', statusFilter],
+    queryFn: () => getOrders(statusFilter ? { status: statusFilter } : undefined),
+  });
+
+  const orders = (ordersData?.data || ordersData || []) as OrdersListResponseItem[];
 
   const tabs = [
     { value: '', label: 'Semua' },
-    { value: 'pending', label: 'Belum Bayar' },
+    { value: 'pending_payment', label: 'Belum Bayar' },
     { value: 'processing', label: 'Dikemas' },
     { value: 'shipped', label: 'Dikirim' },
-    { value: 'completed', label: 'Selesai' },
+    { value: 'delivered', label: 'Selesai' },
   ];
 
   return (
@@ -92,23 +105,26 @@ export default function OrdersPage() {
               
               <div className="p-5">
                 {/* Menampilkan 1 item pertama saja sebagai representasi */}
-                {order.items && order.items.length > 0 && (
+                {order.order_items && order.order_items.length > 0 && (
                   <div className="flex gap-4">
-                    <img 
-                      src={order.items[0].product.thumbnail_url} 
-                      alt={order.items[0].product.name} 
+                    <Image 
+                      src={order.order_items[0].product.thumbnail_url} 
+                      alt={order.order_items[0].product.name} 
+                      width={80}
+                      height={80}
                       className="w-20 h-20 object-cover rounded-xl border border-black/[0.05]"
+                      unoptimized
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{order.items[0].product.name}</h4>
-                      <p className="text-[10px] text-gray-400 font-body mt-0.5">Varian: {order.items[0].variant.sku} x {order.items[0].qty}</p>
-                      <p className="font-display font-black text-xs text-[#F52D6E] mt-2">{formatCurrency(order.items[0].price)}</p>
+                      <h4 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{order.order_items[0].product.name}</h4>
+                      <p className="text-[10px] text-gray-400 font-body mt-0.5">Varian: {order.order_items[0].variant.sku} x {order.order_items[0].qty}</p>
+                      <p className="font-display font-black text-xs text-[#F52D6E] mt-2">{formatCurrency(order.order_items[0].price)}</p>
                     </div>
                   </div>
                 )}
-                {order.items && order.items.length > 1 && (
+                {order.order_items && order.order_items.length > 1 && (
                   <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 mt-3 pt-3 border-t border-black/[0.05]">
-                    + {order.items.length - 1} produk lainnya
+                    + {order.order_items.length - 1} produk lainnya
                   </p>
                 )}
               </div>
@@ -125,10 +141,13 @@ export default function OrdersPage() {
                   >
                     Lihat Detail
                   </Link>
-                  {order.status === 'pending' && (
-                    <button className="inline-flex items-center justify-center h-9 px-4 rounded-xl bg-[#0A0A0A] hover:bg-[#1A1A1A] text-white font-display font-bold uppercase tracking-wider text-[10px] transition-all cursor-pointer">
+                  {order.status === 'pending_payment' && (
+                    <Link
+                      href={`/akun/pesanan/${order.order_number}`}
+                      className="inline-flex items-center justify-center h-9 px-4 rounded-xl bg-[#0A0A0A] hover:bg-[#1A1A1A] text-white font-display font-bold uppercase tracking-wider text-[10px] transition-all cursor-pointer"
+                    >
                       Bayar Sekarang
-                    </button>
+                    </Link>
                   )}
                 </div>
               </div>

@@ -71,14 +71,14 @@ export function HeroSection({ banners }: Props) {
                 </span>
               </motion.div>
 
-              <motion.h2
+              <motion.h1
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
                 className="font-display text-[2rem] sm:text-5xl md:text-6xl lg:text-[4.25rem] font-black leading-[0.95] tracking-[-0.04em] text-white"
               >
                 {banner.title}
-              </motion.h2>
+              </motion.h1>
 
               {banner.description && (
                 <motion.p
@@ -101,7 +101,7 @@ export function HeroSection({ banners }: Props) {
                   href={banner.linkUrl || '/produk'}
                   className="btn-pill-brand h-11 sm:h-12 px-7 sm:px-9 text-sm"
                 >
-                  {banner.linkText || 'Shop Now'}
+                  {banner.linkText || 'Belanja Sekarang'}
                 </Link>
                 <Link
                   href="/produk"

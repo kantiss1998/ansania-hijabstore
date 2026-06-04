@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -11,11 +12,18 @@ import {
   X,
   LogIn,
   Sparkles,
+  User,
+  Bell,
+  CheckCheck,
+  Loader2,
 } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { useCartStore } from '@/stores/cartStore';
 import { useUiStore } from '@/stores/uiStore';
-import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
+import { cn, formatRelativeTime } from '@/lib/utils';
+import toast from 'react-hot-toast';
+import type { Notification } from '@/services/api/notifications';
 
 const NAV_LINKS = [
   { name: 'Produk', href: ROUTES.PRODUCTS },
@@ -33,9 +41,82 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, toggleSearch } = useUiStore();
   const { openDrawer, items } = useCartStore();
+  const { isAuthenticated, user, checkAuth, logout } = useAuthStore();
   const cartCount = items.length;
 
   const overHero = isHome && !scrolled;
+
+  // Notifications states
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isNotifLoading, setIsNotifLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUnreadCount = async () => {
+        try {
+          const { getUnreadCount } = await import('@/services/api/notifications');
+          const data = await getUnreadCount();
+          setUnreadCount(data.count || 0);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 60000);
+      return () => clearInterval(interval);
+    } else {
+      setUnreadCount(0);
+      setNotifications([]);
+    }
+  }, [isAuthenticated]);
+
+  const handleToggleNotif = async () => {
+    const nextState = !isNotifOpen;
+    setIsNotifOpen(nextState);
+    if (nextState) {
+      setIsNotifLoading(true);
+      try {
+        const { getNotifications } = await import('@/services/api/notifications');
+        const data = await getNotifications();
+        setNotifications(data || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsNotifLoading(false);
+      }
+    }
+  };
+
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      const { markRead } = await import('@/services/api/notifications');
+      await markRead(id);
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const { markAllRead } = await import('@/services/api/notifications');
+      await markAllRead();
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+      toast.success('Semua notifikasi ditandai telah dibaca');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   useEffect(() => {
     setMounted(true);
@@ -97,21 +178,17 @@ export function Navbar() {
                 : 'container-main h-14 sm:h-16'
           )}
         >
-          <Link href={ROUTES.HOME} className="group flex shrink-0 items-center gap-1.5">
-            <span
+          <Link href={ROUTES.HOME} className="group flex shrink-0 items-center">
+            <Image
+              src="/Ansania.png"
+              alt="Ansania Logo"
+              width={120}
+              height={32}
               className={cn(
-                'font-display text-xl sm:text-2xl font-black tracking-[-0.06em] transition-colors',
-                overHero ? 'text-white' : 'text-dark'
+                'h-6 sm:h-7 w-auto object-contain transition-all duration-300',
+                overHero && 'brightness-0 invert'
               )}
-            >
-              ansania
-            </span>
-            <span
-              className={cn(
-                'mt-1.5 h-1.5 w-1.5 rounded-full transition-colors',
-                overHero ? 'bg-accent-lime' : 'bg-primary-500 group-hover:bg-primary-600'
-              )}
-              aria-hidden
+              priority
             />
           </Link>
 
@@ -177,6 +254,120 @@ export function Navbar() {
               <Heart className="h-5 w-5" />
             </Link>
 
+            {mounted && isAuthenticated && (
+              <div className="relative hidden sm:block">
+                <button
+                  onClick={handleToggleNotif}
+                  className={cn(
+                    'relative p-2.5 rounded-lg transition-all active:scale-95 cursor-pointer',
+                    overHero ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-primary-50 hover:text-primary-600'
+                  )}
+                  aria-label="Notifikasi"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span
+                      className={cn(
+                        'absolute right-1 top-1 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-primary-600 text-[8px] font-display font-black text-white px-0.5',
+                        overHero ? 'ring-2 ring-dark/30' : 'ring-2 ring-white'
+                      )}
+                    >
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-gray-200/80 rounded-2xl shadow-xl z-50 overflow-hidden py-1 animate-slide-down">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-b-black/[0.04] bg-gray-50/50">
+                        <span className="font-display font-black text-xs uppercase tracking-wider text-[#0A0A0A]">Notifikasi</span>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={handleMarkAllRead}
+                            className="inline-flex items-center gap-1 text-[9px] font-display font-bold uppercase tracking-wider text-primary-600 hover:text-primary-700 cursor-pointer"
+                          >
+                            <CheckCheck className="h-3 w-3" /> Tandai semua dibaca
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="max-h-[360px] overflow-y-auto divide-y divide-black/[0.04] scrollbar-hide">
+                        {isNotifLoading ? (
+                          <div className="py-8 flex justify-center items-center text-xs text-gray-400 font-body gap-1.5">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary-500" /> Memuat...
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="py-12 text-center text-xs text-gray-400 font-body">
+                            Tidak ada notifikasi baru
+                          </div>
+                        ) : (
+                          notifications.map((notif) => {
+                            let linkUrl = '';
+                            try {
+                              const parsed = typeof notif.data === 'string' ? JSON.parse(notif.data) : notif.data;
+                              const orderNum = parsed?.orderNumber || parsed?.order_number;
+                              if (orderNum) {
+                                linkUrl = `/akun/pesanan/${orderNum}`;
+                              }
+                            } catch {}
+
+                            const content = (
+                              <div className="p-4 flex gap-3 text-left">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex justify-between items-start gap-2 mb-0.5">
+                                    <h4 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{notif.title}</h4>
+                                    <span className="text-[9px] text-gray-400 font-body shrink-0">
+                                      {formatRelativeTime(notif.created_at)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 font-body leading-relaxed">{notif.body}</p>
+                                </div>
+                                {!notif.is_read && (
+                                  <span className="h-2 w-2 rounded-full bg-primary-600 shrink-0 mt-1.5" />
+                                )}
+                              </div>
+                            );
+
+                            const onClick = () => {
+                              if (!notif.is_read) {
+                                handleMarkAsRead(notif.id);
+                              }
+                              setIsNotifOpen(false);
+                            };
+
+                            if (linkUrl) {
+                              return (
+                                <Link
+                                  key={notif.id}
+                                  href={linkUrl}
+                                  onClick={onClick}
+                                  className={cn("block hover:bg-gray-50/50 transition-colors", !notif.is_read && "bg-primary-50/20")}
+                                >
+                                  {content}
+                                </Link>
+                              );
+                            }
+
+                            return (
+                              <button
+                                key={notif.id}
+                                onClick={onClick}
+                                className={cn("w-full block hover:bg-gray-50/50 transition-colors cursor-pointer", !notif.is_read && "bg-primary-50/20")}
+                              >
+                                {content}
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             <button
               onClick={openDrawer}
               className={cn(
@@ -198,18 +389,48 @@ export function Navbar() {
               )}
             </button>
 
-            <Link
-              href={ROUTES.AUTH.LOGIN}
-              className={cn(
-                'hidden md:inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-display font-bold transition-all',
-                overHero
-                  ? 'bg-white text-dark hover:bg-white/90'
-                  : 'btn-pill-brand !py-2.5 !px-5 !text-xs'
-              )}
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              Masuk
-            </Link>
+            {mounted && isAuthenticated ? (
+              <div className="hidden md:flex relative group">
+                <button
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-display font-bold transition-all',
+                    overHero
+                      ? 'bg-white/10 text-white hover:bg-white/20'
+                      : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                  )}
+                >
+                  <User className="h-4 w-4" />
+                  {user?.name?.split(' ')[0] || 'Akun'}
+                </button>
+                <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <div className="bg-white rounded-xl shadow-xl border border-gray-100 w-48 overflow-hidden py-1">
+                    {user?.role === 'admin' && (
+                      <>
+                        <Link href="/admin" className="block px-4 py-2 text-sm font-bold text-primary-600 hover:bg-primary-50 font-body">Halaman Admin</Link>
+                        <div className="border-t border-gray-100 my-1"></div>
+                      </>
+                    )}
+                    <Link href={ROUTES.ACCOUNT.PROFILE} className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 font-body">Profil Saya</Link>
+                    <Link href="/akun/pesanan" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 font-body">Pesanan Saya</Link>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button onClick={logout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-body cursor-pointer">Keluar</button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href={ROUTES.AUTH.LOGIN}
+                className={cn(
+                  'hidden md:inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-display font-bold transition-all',
+                  overHero
+                    ? 'bg-white text-dark hover:bg-white/90'
+                    : 'btn-pill-brand !py-2.5 !px-5 !text-xs'
+                )}
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                Masuk
+              </Link>
+            )}
 
             <button
               onClick={toggleMobileMenu}
@@ -242,14 +463,44 @@ export function Navbar() {
               </Link>
             ))}
             <div className="pt-3 border-t border-gray-100">
-              <Link
-                href={ROUTES.AUTH.LOGIN}
-                onClick={closeMobileMenu}
-                className="flex w-full items-center justify-center gap-2 btn-pill-brand h-12"
-              >
-                <LogIn className="h-4 w-4" />
-                Masuk / Daftar
-              </Link>
+              {mounted && isAuthenticated ? (
+                <div className="space-y-1">
+                  {user?.role === 'admin' && (
+                    <Link href="/admin" onClick={closeMobileMenu} className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-display font-bold text-primary-600 hover:bg-primary-50">
+                      <Sparkles className="h-4 w-4 text-primary-500" />
+                      Halaman Admin
+                    </Link>
+                  )}
+                  <Link href={ROUTES.ACCOUNT.PROFILE} onClick={closeMobileMenu} className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-display font-bold text-gray-700 hover:bg-primary-50">
+                    <User className="h-4 w-4" />
+                    Akun Saya
+                  </Link>
+                  <Link href="/akun/pesanan" onClick={closeMobileMenu} className="flex items-center justify-between px-4 py-3 rounded-lg text-sm font-display font-bold text-gray-700 hover:bg-primary-50">
+                    <span className="flex items-center gap-3">
+                      <Bell className="h-4 w-4" />
+                      Notifikasi Saya
+                    </span>
+                    {unreadCount > 0 && (
+                      <span className="bg-primary-600 text-white font-display font-black text-[9px] h-5 min-w-5 flex items-center justify-center rounded-full px-1">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <button onClick={() => { logout(); closeMobileMenu(); }} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-display font-bold text-red-600 hover:bg-red-50 cursor-pointer">
+                    <LogIn className="h-4 w-4 rotate-180" />
+                    Keluar
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href={ROUTES.AUTH.LOGIN}
+                  onClick={closeMobileMenu}
+                  className="flex w-full items-center justify-center gap-2 btn-pill-brand h-12"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Masuk / Daftar
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -6,31 +6,24 @@ import {
   ArrowUpRight, ArrowDownRight, Activity, RefreshCw 
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-// import { getAdminDashboardMetrics } from '@/services/api/admin'; // TODO: Buat service admin
+import { getDashboardSummary, type DashboardSummary } from '@/services/api/admin';
 
 export default function AdminDashboardPage() {
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<DashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Mock fetch for dashboard metrics
-    setTimeout(() => {
-      setMetrics({
-        revenue: 125000000,
-        revenueGrowth: 15.2,
-        orders: 1250,
-        ordersGrowth: 8.5,
-        customers: 3450,
-        customersGrowth: 12.3,
-        products: 450,
-        recentOrders: [
-          { id: 'ORD-001', customer: 'Budi Santoso', total: 450000, status: 'pending', date: '2 Menit lalu' },
-          { id: 'ORD-002', customer: 'Siti Aminah', total: 850000, status: 'processing', date: '1 Jam lalu' },
-          { id: 'ORD-003', customer: 'Rudi Hermawan', total: 1250000, status: 'shipped', date: '3 Jam lalu' },
-        ]
-      });
-      setIsLoading(false);
-    }, 1000);
+    const fetchMetrics = async () => {
+      try {
+        const data = await getDashboardSummary();
+        setMetrics(data);
+      } catch {
+        console.error('Failed to fetch dashboard metrics');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMetrics();
   }, []);
 
   if (isLoading) {
@@ -47,29 +40,29 @@ export default function AdminDashboardPage() {
   const statCards = [
     {
       title: 'Total Pendapatan',
-      value: formatCurrency(metrics?.revenue || 0),
-      trend: metrics?.revenueGrowth,
+      value: formatCurrency(metrics?.total_revenue || 0),
+      trend: null, // metrics?.revenueGrowth
       icon: TrendingUp,
       color: 'bg-blue-50 text-blue-600',
     },
     {
       title: 'Total Pesanan',
-      value: metrics?.orders || 0,
-      trend: metrics?.ordersGrowth,
+      value: metrics?.total_orders || 0,
+      trend: null, // metrics?.ordersGrowth
       icon: ShoppingCart,
       color: 'bg-green-50 text-green-600',
     },
     {
       title: 'Total Pelanggan',
-      value: metrics?.customers || 0,
-      trend: metrics?.customersGrowth,
+      value: metrics?.total_users || 0,
+      trend: null, // metrics?.customersGrowth
       icon: Users,
       color: 'bg-purple-50 text-purple-600',
     },
     {
       title: 'Total Produk',
-      value: metrics?.products || 0,
-      trend: null, // No trend for products
+      value: metrics?.total_products || 0,
+      trend: null,
       icon: Package,
       color: 'bg-orange-50 text-orange-600',
     },
@@ -127,19 +120,21 @@ export default function AdminDashboardPage() {
               <thead className="bg-gray-50/50 text-gray-500">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Order ID</th>
-                  <th className="px-6 py-4 font-semibold">Pelanggan</th>
                   <th className="px-6 py-4 font-semibold">Tanggal</th>
                   <th className="px-6 py-4 font-semibold">Total</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {metrics?.recentOrders.map((order: any) => (
-                  <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-gray-900">{order.id}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.customer}</td>
-                    <td className="px-6 py-4 text-gray-500">{order.date}</td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">{formatCurrency(order.total)}</td>
+                {metrics?.recent_orders?.map((order, idx: number) => (
+                  <tr key={order.order_number || idx} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-gray-900">{order.order_number}</td>
+                    <td className="px-6 py-4 text-gray-500">
+                      {new Date(order.created_at).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                      })}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-gray-900">{formatCurrency(order.total_amount)}</td>
                     <td className="px-6 py-4">
                       <span className={`badge ${
                         order.status === 'pending' ? 'bg-orange-100 text-orange-700' :

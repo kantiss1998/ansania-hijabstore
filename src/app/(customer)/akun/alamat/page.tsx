@@ -1,40 +1,66 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getUserAddresses, deleteAddress } from '@/services/api/users';
+import { useState } from 'react';
+import { getUserAddresses, deleteAddress, createAddress, updateAddress } from '@/services/api/users';
 import { Loader2, Plus, MapPin, Trash2, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AccountPageHeader } from '@/components/customer/AccountPageHeader';
+import { AddressModal } from '@/components/customer/AddressModal';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import type { Address } from '@/types/user.types';
 
 export default function AddressPage() {
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
-  const fetchAddresses = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getUserAddresses();
-      setAddresses(data);
-    } catch (error) {
-      toast.error('Gagal memuat alamat');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // React Query Fetch
+  const { data: addresses = [], isLoading, refetch } = useQuery<Address[]>({
+    queryKey: ['addresses'],
+    queryFn: getUserAddresses,
+  });
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus alamat ini?')) return;
-    try {
-      await deleteAddress(id);
+  // Mutations
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteAddress(id),
+    onSuccess: () => {
       toast.success('Alamat berhasil dihapus');
-      fetchAddresses();
-    } catch (error) {
+      refetch();
+    },
+    onError: () => {
       toast.error('Gagal menghapus alamat');
     }
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      if (editingAddress) {
+        await updateAddress(editingAddress.id, data);
+      } else {
+        await createAddress(data);
+      }
+    },
+    onSuccess: () => {
+      toast.success(editingAddress ? 'Alamat berhasil diperbarui' : 'Alamat baru berhasil ditambahkan');
+      setIsModalOpen(false);
+      refetch();
+    },
+    onError: () => {
+      toast.error('Terjadi kesalahan saat menyimpan alamat');
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus alamat ini?')) return;
+    deleteMutation.mutate(id);
+  };
+
+  const handleOpenModal = (address?: Address) => {
+    setEditingAddress(address || null);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    await submitMutation.mutateAsync(data);
   };
 
   return (
@@ -43,7 +69,11 @@ export default function AddressPage() {
         title="Alamat pengiriman"
         description="Kelola alamat untuk checkout lebih cepat."
         action={
-          <button type="button" className="btn-pill-brand h-10 px-5 text-xs gap-1.5">
+          <button 
+            type="button" 
+            onClick={() => handleOpenModal()} 
+            className="btn-pill-brand h-10 px-5 text-xs gap-1.5 cursor-pointer"
+          >
             <Plus className="h-3.5 w-3.5" />
             Tambah
           </button>
@@ -63,24 +93,27 @@ export default function AddressPage() {
       ) : (
         <div className="space-y-4">
           {addresses.map((address) => (
-            <div key={address.id} className={`p-5 rounded-2xl border ${address.is_primary ? 'border-[#0A0A0A] bg-[#0A0A0A]/5' : 'border-black/[0.06] hover:border-black/20'} transition-all relative`}>
-              {address.is_primary && (
+            <div key={address.id} className={`p-5 rounded-2xl border ${address.isDefault ? 'border-[#0A0A0A] bg-[#0A0A0A]/5' : 'border-black/[0.06] hover:border-black/20'} transition-all relative`}>
+              {address.isDefault && (
                 <span className="absolute top-4 right-4 bg-[#0A0A0A] text-white font-display font-bold uppercase text-[9px] tracking-wider px-2 py-0.5 rounded">Utama</span>
               )}
               <h3 className="font-display font-bold text-sm uppercase tracking-wider text-[#0A0A0A] flex items-center gap-2">
-                {address.recipient_name}
+                {address.recipientName}
                 <span className="text-xs font-body font-normal text-gray-400 border-l border-black/10 pl-2">{address.phone}</span>
               </h3>
-              <p className="text-xs font-body text-gray-500 mt-2 max-w-lg leading-relaxed">{address.full_address}</p>
+              <p className="text-xs font-body text-gray-500 mt-2 max-w-lg leading-relaxed">{address.addressLine1}</p>
               <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold">
-                {address.district}, {address.city}, {address.province} {address.postal_code}
+                {address.addressLine2 ? `${address.addressLine2}, ` : ''}{address.city}, {address.province} {address.postalCode}
               </p>
               
               <div className="flex items-center gap-3 mt-4 pt-4 border-t border-black/[0.06]">
-                <button className="text-xs font-display font-bold uppercase tracking-wider text-[#0A0A0A] hover:text-[#F52D6E] flex items-center gap-1 cursor-pointer">
+                <button 
+                  onClick={() => handleOpenModal(address)} 
+                  className="text-xs font-display font-bold uppercase tracking-wider text-[#0A0A0A] hover:text-[#F52D6E] flex items-center gap-1 cursor-pointer"
+                >
                   <Edit2 className="h-3.5 w-3.5" /> Ubah
                 </button>
-                {!address.is_primary && (
+                {!address.isDefault && (
                   <button onClick={() => handleDelete(address.id)} className="text-xs font-display font-bold uppercase tracking-wider text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer">
                     <Trash2 className="h-3.5 w-3.5" /> Hapus
                   </button>
@@ -90,6 +123,13 @@ export default function AddressPage() {
           ))}
         </div>
       )}
+
+      <AddressModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        initialData={editingAddress}
+      />
     </div>
   );
 }

@@ -1,78 +1,49 @@
 import { api } from '@/lib/api';
-import type { User, UserRole } from '@/types/user.types';
+import type { User } from '@/types/user.types';
 
-const mockUser = (
-  overrides: Pick<User, 'id' | 'name' | 'email' | 'role'> & Partial<User>,
-): User => ({
-  phone: '081234567890',
-  isEmailVerified: true,
-  createdAt: new Date().toISOString(),
-  gender: 'male',
-  birthDate: '1995-10-15',
-  stylePreference: 'Casual Modest',
-  sizePreference: 'M',
-  loyaltyPoints: 1250,
-  loyaltyTier: 'GOLD',
-  voucherCount: 4,
-  wishlistCount: 3,
-  orderCount: 12,
-  ...overrides,
-});
-
-/* --- ORIGINAL API IMPLEMENTATION ---
-export const login = async (data: any) => {
+export const login = async (data: Record<string, unknown>) => {
   const res = await api.post('/auth/login', data);
   return res.data;
 };
 
-export const register = async (data: any) => {
+export const register = async (data: Record<string, unknown>) => {
   const res = await api.post('/auth/register', data);
   return res.data;
 };
 
-export const getProfile = async () => {
-  const { data } = await api.get('/auth/me');
+export const getProfile = async (): Promise<User> => {
+  const { data } = await api.get('/users/me');
   return data.data;
 };
-------------------------------------- */
 
-// Mock Implementation
-export const login = async (data: any) => {
-  // Logika Mockup: Jika email mengandung 'admin', jadikan sebagai Admin. Selain itu, Customer.
-  const isAdmin = data.email && data.email.toLowerCase().includes('admin');
-  
-  return {
-    token: isAdmin ? 'mock-jwt-token-admin' : 'mock-jwt-token-customer',
-    user: mockUser({
-      id: isAdmin ? 99 : 1,
-      name: isAdmin ? 'Administrator' : 'Budi Santoso',
-      email: data.email,
-      role: (isAdmin ? 'admin' : 'customer') as UserRole,
-    }),
-  };
+export const logout = async (refreshToken?: string) => {
+  const res = await api.post('/auth/logout', { refreshToken });
+  return res.data;
 };
 
-export const register = async (data: any) => {
-  return {
-    token: 'mock-jwt-token-customer',
-    user: mockUser({
-      id: 2,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      role: 'customer',
-    }),
-  };
+export const forgotPassword = async (email: string) => {
+  const res = await api.post('/auth/forgot-password', { email });
+  return res.data;
 };
 
-// getProfile bisa menyesuaikan berdasarkan token atau sekadar return data statis
-export const getProfile = async () => {
-  // Secara default mockup menganggap user adalah Budi Santoso (Customer). 
-  // Untuk pengetesan Admin yang lebih solid tanpa refresh, state role diurus di authStore.
-  return mockUser({
-    id: 1,
-    name: 'Budi Santoso',
-    email: 'budi@example.com',
-    role: 'customer',
-  });
+export const resetPassword = async (data: Record<string, unknown>) => {
+  const res = await api.post('/auth/reset-password', data);
+  return res.data;
 };
+
+export const verifyEmail = async (token: string) => {
+  const res = await api.post('/auth/verify-email', { token });
+  return res.data;
+};
+
+export const loginWithOAuth = async (data: {
+  provider: string;
+  token?: string;
+  provider_id?: string;
+  email?: string;
+  name?: string;
+}) => {
+  const res = await api.post('/auth/oauth/login', data);
+  return res.data;
+};
+

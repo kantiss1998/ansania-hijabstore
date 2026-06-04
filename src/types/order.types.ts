@@ -48,6 +48,7 @@ export interface Order {
   items: OrderItem[];
   shippingAddress: OrderAddress;
   shipping: OrderShipping;
+  shipping_info?: OrderShipping;
   subtotal: number;
   shippingCost: number;
   discount: number;

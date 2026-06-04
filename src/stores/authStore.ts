@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
-import { api } from '@/lib/api';
 import { User } from '@/types/user.types';
 import toast from 'react-hot-toast';
 
@@ -9,11 +8,14 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any) => Promise<boolean>;
-  register: (data: any) => Promise<boolean>;
+  login: (credentials: Record<string, unknown>) => Promise<boolean>;
+  register: (data: Record<string, unknown>) => Promise<boolean>;
+  loginOAuth: (provider: string, data: { token?: string; provider_id?: string; email?: string; name?: string }) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
+
+
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -25,18 +27,47 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials) => {
         set({ isLoading: true });
         try {
-          // Gunakan service mockup (api/auth.ts)
           const { login: apiLogin } = await import('@/services/api/auth');
           const response = await apiLogin(credentials);
-          const { user, token } = response;
           
-          Cookies.set('token', token, { expires: 7 }); 
+          const payload = response.data || response;
+          const { user, accessToken, refreshToken } = payload;
+          const activeToken = accessToken || response.token;
+          
+          Cookies.set('token', activeToken, { expires: 7 }); 
+          if (refreshToken) {
+            Cookies.set('refreshToken', refreshToken, { expires: 7 });
+          }
           
           set({ user, isAuthenticated: true, isLoading: false });
+
+          // Sync wishlist dari database
+          try {
+            const { getWishlist } = await import('@/services/api/users');
+            const { useWishlistStore } = await import('@/stores/wishlistStore');
+            const wishlist = await getWishlist();
+            const ids = (wishlist || [])
+              .map((item) => item.product_id || item.product?.id || item.id)
+              .filter((id): id is number => typeof id === 'number');
+            useWishlistStore.getState().init(ids);
+          } catch (e) {
+            console.error('Failed to sync wishlist on login:', e);
+          }
+
+          // Merge guest cart with user cart in DB
+          try {
+            const { useCartStore } = await import('@/stores/cartStore');
+            await useCartStore.getState().mergeGuestCart();
+            await useCartStore.getState().syncCart();
+          } catch (e) {
+            console.error('Failed to sync/merge cart on login:', e);
+          }
+
           return true;
-        } catch (error: any) {
+        } catch (error) {
           set({ isLoading: false });
-          toast.error(error.message || 'Gagal masuk.');
+          const err = error as { message?: string };
+          toast.error(err.message || 'Gagal masuk.');
           return false;
         }
       },
@@ -46,23 +77,110 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { register: apiRegister } = await import('@/services/api/auth');
           const response = await apiRegister(data);
-          const { user, token } = response;
           
-          Cookies.set('token', token, { expires: 7 });
+          const payload = response.data || response;
+          const { user, accessToken, refreshToken } = payload;
+          const activeToken = accessToken || response.token;
+          
+          Cookies.set('token', activeToken, { expires: 7 });
+          if (refreshToken) {
+            Cookies.set('refreshToken', refreshToken, { expires: 7 });
+          }
           
           set({ user, isAuthenticated: true, isLoading: false });
+
+          // Sync wishlist dari database
+          try {
+            const { getWishlist } = await import('@/services/api/users');
+            const { useWishlistStore } = await import('@/stores/wishlistStore');
+            const wishlist = await getWishlist();
+            const ids = (wishlist || [])
+              .map((item) => item.product_id || item.product?.id || item.id)
+              .filter((id): id is number => typeof id === 'number');
+            useWishlistStore.getState().init(ids);
+          } catch (e) {
+            console.error('Failed to sync wishlist on register:', e);
+          }
+
+          // Merge guest cart with user cart in DB
+          try {
+            const { useCartStore } = await import('@/stores/cartStore');
+            await useCartStore.getState().mergeGuestCart();
+            await useCartStore.getState().syncCart();
+          } catch (e) {
+            console.error('Failed to sync/merge cart on register:', e);
+          }
+
           return true;
-        } catch (error: any) {
+        } catch (error) {
           set({ isLoading: false });
-          toast.error(error.message || 'Gagal mendaftar.');
+          const err = error as { message?: string };
+          toast.error(err.message || 'Gagal mendaftar.');
           return false;
         }
       },
 
-      logout: () => {
-        Cookies.remove('token');
-        set({ user: null, isAuthenticated: false });
-        toast.success('Berhasil keluar');
+      loginOAuth: async (provider, data) => {
+        set({ isLoading: true });
+        try {
+          const { loginWithOAuth } = await import('@/services/api/auth');
+          const response = await loginWithOAuth({ provider, ...data });
+          
+          const payload = response.data || response;
+          const { user, accessToken, refreshToken } = payload;
+          const activeToken = accessToken || response.token;
+          
+          Cookies.set('token', activeToken, { expires: 7 }); 
+          if (refreshToken) {
+            Cookies.set('refreshToken', refreshToken, { expires: 7 });
+          }
+          
+          set({ user, isAuthenticated: true, isLoading: false });
+
+          // Sync wishlist dari database
+          try {
+            const { getWishlist } = await import('@/services/api/users');
+            const { useWishlistStore } = await import('@/stores/wishlistStore');
+            const wishlist = await getWishlist();
+            const ids = (wishlist || [])
+              .map((item) => item.product_id || item.product?.id || item.id)
+              .filter((id): id is number => typeof id === 'number');
+            useWishlistStore.getState().init(ids);
+          } catch (e) {
+            console.error('Failed to sync wishlist on OAuth login:', e);
+          }
+
+          // Merge guest cart with user cart in DB
+          try {
+            const { useCartStore } = await import('@/stores/cartStore');
+            await useCartStore.getState().mergeGuestCart();
+            await useCartStore.getState().syncCart();
+          } catch (e) {
+            console.error('Failed to sync/merge cart on OAuth login:', e);
+          }
+
+          return true;
+        } catch (error) {
+          set({ isLoading: false });
+          const err = error as { message?: string };
+          toast.error(err.message || 'Gagal masuk dengan OAuth.');
+          return false;
+        }
+      },
+
+      logout: async () => {
+        try {
+          const refreshToken = Cookies.get('refreshToken');
+          const { logout: apiLogout } = await import('@/services/api/auth');
+          await apiLogout(refreshToken);
+        } catch (error) {
+          console.error('API Error /auth/logout:', error);
+        } finally {
+          Cookies.remove('token');
+          Cookies.remove('refreshToken');
+          set({ user: null, isAuthenticated: false });
+          toast.success('Berhasil keluar');
+        }
       },
 
       checkAuth: async () => {
@@ -73,28 +191,25 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          // Jika token adalah token admin, asumsikan user admin (untuk mockup persistance)
-          if (token === 'mock-jwt-token-admin') {
-             set({
-               user: {
-                 id: 99,
-                 name: 'Administrator',
-                 email: 'admin@ansania.com',
-                 phone: '081234567890',
-                 role: 'admin',
-                 isEmailVerified: true,
-                 createdAt: new Date().toISOString(),
-               },
-               isAuthenticated: true,
-             });
-             return;
-          }
-
           const { getProfile: apiGetProfile } = await import('@/services/api/auth');
           const user = await apiGetProfile();
           set({ user, isAuthenticated: true });
-        } catch (error) {
+
+          // Sync wishlist dari database
+          try {
+            const { getWishlist } = await import('@/services/api/users');
+            const { useWishlistStore } = await import('@/stores/wishlistStore');
+            const wishlist = await getWishlist();
+            const ids = (wishlist || [])
+              .map((item) => item.product_id || item.product?.id || item.id)
+              .filter((id): id is number => typeof id === 'number');
+            useWishlistStore.getState().init(ids);
+          } catch (e) {
+            console.error('Failed to sync wishlist on checkAuth:', e);
+          }
+        } catch {
           Cookies.remove('token');
+          Cookies.remove('refreshToken');
           set({ user: null, isAuthenticated: false });
         }
       },

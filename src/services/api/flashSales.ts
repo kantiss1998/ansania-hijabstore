@@ -1,91 +1,59 @@
 import { api } from '@/lib/api';
 import type { FlashSale } from '@/types/product.types';
 
-/* --- ORIGINAL API IMPLEMENTATION ---
-export const getActiveFlashSale = async () => {
-  try {
-    const { data } = await api.get('/flash-sales/active');
-    return data.data;
-  } catch (error) {
-    return null;
-  }
-};
-------------------------------------- */
+interface BackendFlashSaleItem {
+  id: number;
+  variant_id: number;
+  original_price: number;
+  sale_price: number;
+  quota: number;
+  sold_count: number;
+  product_name: string;
+  variant_name?: string;
+  primary_image?: string;
+}
 
-// Mock Implementation
+interface BackendFlashSale {
+  id: number;
+  name: string;
+  starts_at?: string;
+  startDate?: string;
+  ends_at?: string;
+  endDate?: string;
+  items?: BackendFlashSaleItem[];
+}
+
 export const getActiveFlashSale = async (): Promise<FlashSale | null> => {
+  const { data } = await api.get('/flash-sales/active');
+  const sales: BackendFlashSale[] = data.data || data;
+  if (!sales || sales.length === 0) return null;
+  
+  const sale = sales[0];
   return {
-    id: 1,
-    name: 'Mega Flash Sale',
-    startDate: new Date().toISOString(),
-    endDate: new Date(Date.now() + 86400000).toISOString(), // +24 hours
-    products: [
-      {
-        id: 1,
-        originalPrice: 350000,
-        flashSalePrice: 150000,
-        maxQty: 100,
-        soldQty: 50,
-        product: {
-          id: 101,
-          name: 'Gamis Syari Khadijah',
-          slug: 'gamis-syari-khadijah',
-          price: 150000,
-          comparePrice: 350000,
-          thumbnailUrl:
-            'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=2070&auto=format&fit=crop',
-          category: { id: 1, name: 'Gamis', slug: 'gamis' },
-          stockStatus: 'in_stock',
-          ratingAverage: 4.8,
-          totalReviews: 120,
-          isFeatured: true,
-          isNew: false,
-        },
-      },
-      {
-        id: 2,
-        originalPrice: 275000,
-        flashSalePrice: 120000,
-        maxQty: 50,
-        soldQty: 30,
-        product: {
-          id: 102,
-          name: 'Tunik Aisyah Modern',
-          slug: 'tunik-aisyah-modern',
-          price: 120000,
-          comparePrice: 275000,
-          thumbnailUrl:
-            'https://images.unsplash.com/photo-1550614000-4b95dd2457bf?q=80&w=1974&auto=format&fit=crop',
-          category: { id: 2, name: 'Tunik', slug: 'tunik' },
-          stockStatus: 'low_stock',
-          ratingAverage: 4.9,
-          totalReviews: 85,
-          isFeatured: false,
-          isNew: true,
-        },
-      },
-      {
-        id: 3,
-        originalPrice: 85000,
-        flashSalePrice: 45000,
-        maxQty: 200,
-        soldQty: 100,
-        product: {
-          id: 103,
-          name: 'Pashmina Ceruty Babydoll',
-          slug: 'pashmina-ceruty-babydoll',
-          price: 45000,
-          comparePrice: 85000,
-          thumbnailUrl:
-            'https://images.unsplash.com/photo-1589810635656-3c28549aa669?q=80&w=1974&auto=format&fit=crop',
-          category: { id: 3, name: 'Hijab', slug: 'hijab' },
-          stockStatus: 'in_stock',
-          ratingAverage: 4.7,
-          totalReviews: 210,
-          isFeatured: false,
-          isNew: false,
-        },
-      },
-    ],
+    id: sale.id,
+    name: sale.name,
+    startDate: sale.starts_at || sale.startDate || '',
+    endDate: sale.ends_at || sale.endDate || '',
+    products: (sale.items || []).map((item: BackendFlashSaleItem) => ({
+      id: item.id,
+      originalPrice: item.original_price,
+      flashSalePrice: item.sale_price,
+      maxQty: item.quota,
+      soldQty: item.sold_count,
+      product: {
+        id: item.variant_id,
+        name: item.variant_name ? `${item.product_name} - ${item.variant_name}` : item.product_name,
+        slug: item.product_name.toLowerCase().replace(/ /g, '-') + '-' + item.variant_id,
+        price: item.sale_price,
+        comparePrice: item.original_price,
+        thumbnailUrl: item.primary_image || '',
+        category: { id: 0, name: 'Uncategorized', slug: 'uncategorized' },
+        stockStatus: item.quota > item.sold_count ? 'in_stock' : 'out_of_stock',
+        ratingAverage: 4.8,
+        totalReviews: 50,
+        isFeatured: false,
+        isNew: false
+      }
+    }))
   };
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { type Category } from '@/types/product.types';
 import { ROUTES } from '@/constants/routes';
@@ -62,11 +63,13 @@ export function CategorySection({ categories }: Props) {
                       }}
                     >
                       {hasImage ? (
-                        <img
-                          src={cat.imageUrl}
+                        <Image
+                          src={cat.imageUrl!}
                           alt={cat.name}
+                          width={104}
+                          height={104}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          loading="lazy"
+                          unoptimized
                         />
                       ) : (
                         <span className="flex h-full w-full items-center justify-center font-display text-2xl font-black text-white">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { X, ShoppingBag, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { formatCurrency } from '@/lib/utils';
@@ -70,9 +71,11 @@ export function CartDrawer() {
               <div key={item.id} className="flex gap-4 p-4 bg-white rounded-2xl border border-black/[0.06] hover:border-black/15 transition-all">
                 {/* Image */}
                 <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 border border-black/[0.05]">
-                  <img
+                  <Image
                     src={item.thumbnailUrl}
                     alt={item.productName}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 </div>

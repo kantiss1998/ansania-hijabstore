@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Truck, Ticket, CreditCard, Loader2, ShieldCheck, ShoppingCartIcon } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
-import { useAuthStore } from '@/stores/authStore';
 import { getUserAddresses } from '@/services/api/users';
 import { getShippingCost } from '@/services/api/shipping';
 import { validateVoucher } from '@/services/api/vouchers';
@@ -15,21 +15,52 @@ import { ROUTES } from '@/constants/routes';
 import { PageHero } from '@/components/customer/PageHero';
 import { CustomerCard } from '@/components/customer/CustomerCard';
 import toast from 'react-hot-toast';
+import type { Address } from '@/types/user.types';
+
+interface ShippingOption {
+  name: string;
+  cost: number;
+  etd: string;
+}
+
+interface AppliedVoucher {
+  code: string;
+  type: 'percentage' | 'fixed_amount';
+  value: number;
+}
+
+interface WindowWithSnap extends Window {
+  snap: {
+    pay: (token: string, options: {
+      onSuccess: (result: unknown) => void;
+      onPending: (result: unknown) => void;
+      onError: (result: unknown) => void;
+      onClose: () => void;
+    }) => void;
+  };
+}
+
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
   const { items, getTotal, syncCart, clearCart } = useCartStore();
   
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   
-  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
-  const [selectedShipping, setSelectedShipping] = useState<any>(null);
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   
   const [voucherCode, setVoucherCode] = useState('');
-  const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucher | null>(null);
   
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -44,10 +75,11 @@ export default function CheckoutPage() {
     getUserAddresses().then(data => {
       setAddresses(data);
       if (data.length > 0) {
-        const primary = data.find((a: any) => a.is_primary) || data[0];
+        const primary = data.find((a) => a.isDefault) || data[0];
         setSelectedAddressId(primary.id);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch shipping cost when address changes
@@ -56,12 +88,13 @@ export default function CheckoutPage() {
       setIsCalculatingShipping(true);
       const address = addresses.find(a => a.id === selectedAddressId);
       
-      // Hitung total berat (asumsi tiap item 300 gram = 0.3 kg, disesuaikan)
-      const totalWeight = items.reduce((sum, item) => sum + (300 * item.qty), 0);
+      // Hitung total berat riil dari database (default fallback 300 gram)
+      const totalWeight = items.reduce((sum, item) => sum + ((item.weight_gram || 300) * item.qty), 0);
 
       getShippingCost({
-        origin: 'CITY_ID_ASAL', // Harus dikonfigurasi dari env atau backend setting
-        destination: address?.city_id?.toString() || '1',
+        origin: process.env.NEXT_PUBLIC_ORIGIN_POSTAL_CODE || '40111',
+        destination: address?.cityId || '0',
+        postal_code: address?.postalCode || '',
         weight: totalWeight
       }).then(data => {
         // Asumsi data mengembalikan array opsi kurir
@@ -81,6 +114,7 @@ export default function CheckoutPage() {
         setIsCalculatingShipping(false);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddressId, items]);
 
   // Load Midtrans Snap script
@@ -88,7 +122,7 @@ export default function CheckoutPage() {
     const scriptUrl = process.env.NEXT_PUBLIC_MIDTRANS_SNAP_URL || 'https://app.sandbox.midtrans.com/snap/snap.js';
     const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
     
-    let scriptTag = document.createElement('script');
+    const scriptTag = document.createElement('script');
     scriptTag.src = scriptUrl;
     scriptTag.setAttribute('data-client-key', clientKey || '');
     document.body.appendChild(scriptTag);
@@ -104,8 +138,9 @@ export default function CheckoutPage() {
       const data = await validateVoucher(voucherCode, subtotal);
       setAppliedVoucher(data);
       toast.success('Voucher berhasil digunakan!');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Voucher tidak valid');
+    } catch (error: unknown) {
+      const err = error as ApiErrorResponse;
+      toast.error(err.response?.data?.message || 'Voucher tidak valid');
     }
   };
 
@@ -132,18 +167,18 @@ export default function CheckoutPage() {
 
       // Panggil Midtrans Snap
       if (orderData.data && orderData.data.snap_token) {
-        (window as any).snap.pay(orderData.data.snap_token, {
-          onSuccess: async function (result: any) {
+        (window as unknown as WindowWithSnap).snap.pay(orderData.data.snap_token, {
+          onSuccess: async function () {
             toast.success('Pembayaran berhasil!');
             await clearCart();
             router.push(`/akun/pesanan/${orderData.data.order_number}`);
           },
-          onPending: async function (result: any) {
+          onPending: async function () {
             toast.success('Pesanan dibuat. Silakan selesaikan pembayaran.');
             await clearCart();
             router.push(`/akun/pesanan/${orderData.data.order_number}`);
           },
-          onError: function (result: any) {
+          onError: function () {
             toast.error('Pembayaran gagal. Silakan coba lagi.');
             router.push(`/akun/pesanan/${orderData.data.order_number}`);
           },
@@ -159,8 +194,9 @@ export default function CheckoutPage() {
         router.push(`/akun/pesanan/${orderData.data?.order_number || ''}`);
       }
 
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan');
+    } catch (error: unknown) {
+      const err = error as ApiErrorResponse;
+      toast.error(err.response?.data?.message || 'Terjadi kesalahan saat memproses pesanan');
     } finally {
       setIsProcessing(false);
     }
@@ -208,9 +244,9 @@ export default function CheckoutPage() {
               
               {selectedAddress ? (
                 <div className="text-xs font-body text-gray-500 space-y-1">
-                  <p className="font-display font-bold text-sm text-[#0A0A0A]">{selectedAddress.recipient_name} <span className="font-body font-normal text-gray-400">| {selectedAddress.phone}</span></p>
-                  <p className="leading-relaxed">{selectedAddress.full_address}</p>
-                  <p className="uppercase text-[10px] font-bold text-gray-400">{selectedAddress.district}, {selectedAddress.city}</p>
+                  <p className="font-display font-bold text-sm text-[#0A0A0A]">{selectedAddress.recipientName} <span className="font-body font-normal text-gray-400">| {selectedAddress.phone}</span></p>
+                  <p className="leading-relaxed">{selectedAddress.addressLine1}</p>
+                  <p className="uppercase text-[10px] font-bold text-gray-400">{selectedAddress.addressLine2 ? `${selectedAddress.addressLine2}, ` : ''}{selectedAddress.city}</p>
                 </div>
               ) : (
                 <div className="text-center py-4">
@@ -229,7 +265,7 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <img src={item.thumbnailUrl} alt={item.productName} className="w-20 h-20 object-cover rounded-xl border border-[#0A0A0A]/[0.05]" />
+                    <Image src={item.thumbnailUrl} alt={item.productName} width={80} height={80} className="w-20 h-20 object-cover rounded-xl border border-[#0A0A0A]/[0.05]" unoptimized />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{item.productName}</h3>
                       <p className="text-[10px] text-gray-400 font-body mt-0.5">Varian: {item.variantName}</p>

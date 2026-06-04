@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Tag } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
 import { ROUTES } from '@/constants/routes';
 import { getCategories } from '@/services/api/categories';
 
@@ -26,7 +29,7 @@ export default async function KategoriPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-        {categories.map((category: any) => (
+        {categories.map((category) => (
           <Link
             key={category.id}
             href={`${ROUTES.PRODUCTS}?category=${category.slug}`}
@@ -34,10 +37,13 @@ export default async function KategoriPage() {
           >
             <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border border-black/[0.05] relative group-hover:scale-105 transition-all duration-500">
               {category.imageUrl ? (
-                <img
+                <Image
                   src={category.imageUrl}
                   alt={category.name}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full bg-gray-50 flex items-center justify-center text-gray-400">

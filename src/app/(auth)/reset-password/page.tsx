@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Lock, ArrowLeft, KeyRound } from 'lucide-react';
-import { ROUTES } from '@/constants/routes';
+import { Lock, KeyRound } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Reset Password | ansania',

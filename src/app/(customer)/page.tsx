@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { HeroSection } from '@/components/home/HeroSection';
 import { CategorySection } from '@/components/home/CategorySection';
+
+export const dynamic = 'force-dynamic';
 import { FlashSaleSection } from '@/components/home/FlashSaleSection';
 import { FeaturedProductsSection } from '@/components/home/FeaturedProductsSection';
 import { MidHeroBanner } from '@/components/home/MidHeroBanner';
 import { NewArrivalsSection } from '@/components/home/NewArrivalsSection';
 import { ValuePropsSection } from '@/components/home/ValuePropsSection';
-// import { SocialSection } from '@/components/home/SocialSection';
+import { SocialSection } from '@/components/home/SocialSection';
 import { TrendingMarquee } from '@/components/home/TrendingMarquee';
 import { getBanners } from '@/services/api/banners';
 import { getCategories } from '@/services/api/categories';
@@ -65,8 +67,8 @@ export default async function HomePage() {
 
         {hasNewArrivals && <NewArrivalsSection products={resolvedNewArrivals} />}
 
-        {/* Join the squad — dinonaktifkan sementara */}
-        {/* <SocialSection /> */}
+        {/* Join the squad / Komunitas */}
+        <SocialSection />
       </div>
     </div>
   );

@@ -1,68 +1,93 @@
 import { api } from '@/lib/api';
 
-/* --- ORIGINAL API IMPLEMENTATION ---
-export const addToCart = async (data: any) => {
-  const res = await api.post('/cart', data);
+interface CartItemInput {
+  variantId?: number;
+  variant_id?: number;
+  quantity?: number;
+  qty?: number;
+}
+
+interface BackendCartItem {
+  id: number;
+  product_id?: number;
+  variant_id: number;
+  quantity?: number;
+  qty?: number;
+  price?: number;
+  subtotal?: number;
+  product_name: string;
+  product_slug?: string;
+  primary_image?: string;
+  thumbnail_url?: string;
+  sku?: string;
+  stock?: number;
+  weight_gram?: number;
+}
+
+export const addToCart = async (data: CartItemInput, sessionId?: string) => {
+  const payload: Record<string, unknown> = {
+    variant_id: data.variantId || data.variant_id,
+    quantity: data.quantity || data.qty || 1
+  };
+  if (sessionId) {
+    payload.session_id = sessionId;
+  }
+  const res = await api.post('/cart/items', payload);
   return res.data;
 };
 
-export const getCart = async () => {
-  const { data } = await api.get('/cart');
-  return data.data;
-};
-
-export const updateCartItem = async (itemId: number, qty: number) => {
-  const { data } = await api.put(`/cart/${itemId}`, { qty });
-  return data;
-};
-
-export const removeCartItem = async (itemId: number) => {
-  const { data } = await api.delete(`/cart/${itemId}`);
-  return data;
-};
-
-export const clearCart = async () => {
-  const { data } = await api.delete('/cart/clear');
-  return data;
-};
-------------------------------------- */
-
-// Mock Implementation
-export const addToCart = async (data: any) => {
-  return { success: true, message: 'Added to cart' };
-};
-
-export const getCart = async () => {
+export const getCart = async (sessionId?: string) => {
+  const params: Record<string, unknown> = {};
+  if (sessionId) {
+    params.session_id = sessionId;
+  }
+  const { data } = await api.get('/cart', { params });
+  const cart = data.data || data;
+  const items = (cart.items || []).map((item: BackendCartItem) => ({
+    id: item.id,
+    product_id: item.product_id || item.id,
+    variant_id: item.variant_id,
+    qty: item.quantity || item.qty || 1,
+    price: item.price || (item.subtotal ? item.subtotal / (item.quantity || 1) : 0),
+    weight_gram: item.weight_gram || 300,
+    product: {
+      name: item.product_name,
+      slug: item.product_slug || item.product_name.toLowerCase().replace(/ /g, '-'),
+      thumbnail_url: item.primary_image || item.thumbnail_url || ''
+    },
+    variant: {
+      sku: item.sku || '',
+      stock: item.stock || 0
+    }
+  }));
   return {
-    items: [
-      {
-        id: 999,
-        product_id: 1,
-        variant_id: 1,
-        qty: 1,
-        price: 250000,
-        product: {
-          name: 'Produk Fashion Muslim Premium 1',
-          slug: 'produk-fashion-muslim-premium-1',
-          thumbnail_url: 'https://images.unsplash.com/photo-1515347619362-e64e9e42d765?q=80&w=800&auto=format&fit=crop'
-        },
-        variant: {
-          sku: 'SKU-1',
-          stock: 50
-        }
-      }
-    ]
+    items,
+    total: cart.total || 0
   };
 };
 
-export const updateCartItem = async (itemId: number, qty: number) => {
-  return { success: true };
+export const updateCartItem = async (itemId: number, qty: number, sessionId?: string) => {
+  const { data } = await api.patch(`/cart/items/${itemId}`, { quantity: qty }, {
+    params: sessionId ? { session_id: sessionId } : undefined
+  });
+  return data;
 };
 
-export const removeCartItem = async (itemId: number) => {
-  return { success: true };
+export const removeCartItem = async (itemId: number, sessionId?: string) => {
+  const { data } = await api.delete(`/cart/items/${itemId}`, {
+    params: sessionId ? { session_id: sessionId } : undefined
+  });
+  return data;
 };
 
-export const clearCart = async () => {
-  return { success: true };
+export const mergeCart = async (sessionId: string) => {
+  const res = await api.post('/cart/merge', { session_id: sessionId });
+  return res.data;
+};
+
+export const clearCart = async (sessionId?: string) => {
+  const { data } = await api.delete('/cart', {
+    params: sessionId ? { session_id: sessionId } : undefined
+  });
+  return data;
 };

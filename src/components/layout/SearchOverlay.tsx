@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { Search, X, Clock } from 'lucide-react';
 import { useUiStore } from '@/stores/uiStore';
 import { ROUTES } from '@/constants/routes';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,25 @@ export function SearchOverlay() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { isSearchOpen, closeSearch, searchQuery, setSearchQuery } = useUiStore();
+  const [history, setHistory] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ansania-search-history');
+    if (saved) {
+      try { setHistory(JSON.parse(saved)); } catch {}
+    }
+  }, []);
+
+  const saveHistory = (term: string) => {
+    const newHistory = [term, ...history.filter(h => h !== term)].slice(0, 5);
+    setHistory(newHistory);
+    localStorage.setItem('ansania-search-history', JSON.stringify(newHistory));
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('ansania-search-history');
+  };
 
   useEffect(() => {
     if (!isSearchOpen) return;
@@ -36,6 +55,7 @@ export function SearchOverlay() {
   const submit = (query: string) => {
     const trimmed = query.trim();
     if (!trimmed) return;
+    saveHistory(trimmed);
     closeSearch();
     router.push(ROUTES.SEARCH(trimmed));
   };
@@ -86,7 +106,7 @@ export function SearchOverlay() {
             </button>
           </div>
 
-          <div className="px-4 py-3 flex flex-wrap items-center gap-2">
+          <div className="px-4 py-3 border-b border-primary-50/50 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400">
               Populer:
             </span>
@@ -95,15 +115,43 @@ export function SearchOverlay() {
                 key={term}
                 type="button"
                 onClick={() => submit(term)}
-                className="rounded-md border border-primary-100 bg-primary-50/50 px-2.5 py-1 text-xs font-display font-bold text-primary-700 hover:bg-primary-100 transition-colors"
+                className="rounded-md border border-primary-100 bg-primary-50/50 px-2.5 py-1 text-xs font-display font-bold text-primary-700 hover:bg-primary-100 transition-colors cursor-pointer"
               >
                 {term}
               </button>
             ))}
+          </div>
+
+          {history.length > 0 && (
+            <div className="px-4 py-3 border-b border-primary-50/50">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Riwayat:
+                </span>
+                <button onClick={clearHistory} type="button" className="text-[10px] text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
+                  Hapus
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {history.map((term) => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => submit(term)}
+                    className="rounded-md border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-body text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="px-4 py-3 flex justify-end">
             <button
               type="submit"
               className={cn(
-                'ml-auto btn-pill-brand !py-2 !px-5 !text-xs',
+                'btn-pill-brand !py-2 !px-5 !text-xs',
                 !searchQuery.trim() && 'opacity-50 pointer-events-none'
               )}
             >

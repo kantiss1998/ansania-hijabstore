@@ -88,6 +88,7 @@ export interface CartItem {
   price: number;
   qty: number;
   maxQty: number;
+  weight_gram?: number;
 }
 
 export interface Cart {

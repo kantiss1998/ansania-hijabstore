@@ -1,122 +1,154 @@
 import { api } from '@/lib/api';
 import type { ProductDetail, ProductFilter, ProductListItem } from '@/types/product.types';
 
-/* --- ORIGINAL API IMPLEMENTATION ---
-export const getProducts = async (params?: any) => {
+interface BackendProductImage {
+  id: number;
+  url: string;
+  alt_text?: string;
+  is_primary: number | boolean;
+  sort_order: number;
+}
+
+interface BackendProductVariantAttr {
+  attr_name: string;
+  attr_value: string;
+}
+
+interface BackendProductVariant {
+  id: number;
+  sku: string;
+  price: string | number;
+  stock: number;
+  attrs?: BackendProductVariantAttr[];
+}
+
+interface BackendProduct {
+  id: number;
+  name: string;
+  slug: string;
+  min_price?: number;
+  price?: number;
+  compare_price?: number;
+  base_compare_price?: number;
+  primary_image?: string;
+  thumbnailUrl?: string;
+  category_id?: number;
+  category_name?: string;
+  category_slug?: string;
+  category?: { id: number; name: string; slug: string; description?: string; imageUrl?: string };
+  stockStatus?: 'in_stock' | 'low_stock' | 'out_of_stock';
+  ratingAverage?: number;
+  totalReviews?: number;
+  is_featured?: number | boolean;
+  isNew?: boolean;
+  description?: string;
+  images?: BackendProductImage[];
+  variants?: BackendProductVariant[];
+  rating_summary?: { rating_avg: number; total_reviews: number };
+}
+
+export const getProducts = async (params?: ProductFilter): Promise<{ data: ProductListItem[], meta: { total: number, lastPage: number } }> => {
   const { data } = await api.get('/products', { params });
-  return data;
-};
-
-export const getProductBySlug = async (slug: string) => {
-  const { data } = await api.get(`/products/${slug}`);
-  return data.data;
-};
-
-export const getFeaturedProducts = async () => {
-  const { data } = await api.get('/products/featured');
-  return data.data;
-};
-------------------------------------- */
-
-// Mock Implementation
-const dummyListProducts: ProductListItem[] = Array.from({ length: 24 }).map(
-  (_, i) => {
-    const isGamis = i % 2 === 0;
-    return {
-      id: i + 1,
-      name: `Produk Fashion Muslim Premium ${i + 1}`,
-      slug: `produk-fashion-muslim-premium-${i + 1}`,
-      price: 250000 + i * 15000,
-      comparePrice: i % 3 === 0 ? 400000 + i * 15000 : undefined,
-      thumbnailUrl: `https://images.unsplash.com/photo-${isGamis ? '1515347619362-e64e9e42d765' : '1589810635656-3c28549aa669'}?q=80&w=800&auto=format&fit=crop`,
-      category: {
-        id: isGamis ? 1 : 3,
-        name: isGamis ? 'Gamis' : 'Hijab',
-        slug: isGamis ? 'gamis' : 'hijab',
-      },
-      stockStatus: i === 3 ? 'out_of_stock' : i === 5 ? 'low_stock' : 'in_stock',
-      ratingAverage: 4.8,
-      totalReviews: 150 + i * 10,
-      isFeatured: i % 4 === 0,
-      isNew: i < 5,
-    };
-  },
-);
-
-const dummyDetailProduct: ProductDetail = {
-  ...dummyListProducts[0],
-  description:
-    'Desain eksklusif dengan bahan premium yang nyaman dipakai seharian. Potongan rapi dan elegan, cocok untuk berbagai acara.',
-  images: [
-    {
-      id: 1,
-      url: 'https://images.unsplash.com/photo-1515347619362-e64e9e42d765?q=80&w=800&auto=format&fit=crop',
-      alt: 'Produk 1',
-      isPrimary: true,
-      sortOrder: 0,
+  const list: BackendProduct[] = data.data || [];
+  const meta = data.meta || { total: 0, totalPages: 1 };
+  
+  const formattedData: ProductListItem[] = list.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: Number(p.min_price || p.price || 0),
+    comparePrice: p.base_compare_price ? Number(p.base_compare_price) : undefined,
+    thumbnailUrl: p.primary_image || p.thumbnailUrl || '',
+    category: {
+      id: p.category_id || p.category?.id || 0,
+      name: p.category_name || p.category?.name || 'Kategori',
+      slug: p.category_slug || p.category?.slug || 'kategori',
     },
-    {
-      id: 2,
-      url: 'https://images.unsplash.com/photo-1589810635656-3c28549aa669?q=80&w=800&auto=format&fit=crop',
-      alt: 'Produk 1 - 2',
-      isPrimary: false,
-      sortOrder: 1,
-    },
-  ],
-  variants: [
-    {
-      id: 1,
-      sku: 'BLK-01',
-      price: dummyListProducts[0].price,
-      stock: 10,
-      stockStatus: 'in_stock',
-      options: [{ id: 1, name: 'Warna', value: 'Hitam' }],
-    },
-    {
-      id: 2,
-      sku: 'NVY-01',
-      price: dummyListProducts[0].price,
-      stock: 15,
-      stockStatus: 'in_stock',
-      options: [{ id: 2, name: 'Warna', value: 'Navy' }],
-    },
-  ],
-};
+    stockStatus: p.stockStatus || 'in_stock',
+    ratingAverage: p.ratingAverage || 5,
+    totalReviews: p.totalReviews || 0,
+    isFeatured: p.is_featured === 1 || p.is_featured === true,
+    isNew: p.isNew || false
+  }));
 
-export const getProducts = async (params?: ProductFilter) => {
-  let items = dummyListProducts;
-  if (params?.q) {
-    const term = params.q.toLowerCase().trim();
-    items = items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(term) ||
-        p.category.name.toLowerCase().includes(term) ||
-        p.category.slug.toLowerCase().includes(term),
-    );
-  }
-  if (params?.isFeatured) {
-    items = items.filter((p) => p.isFeatured);
-  }
-  if (params?.isNew) {
-    items = items.filter((p) => p.isNew);
-  }
-  if (params?.sort === 'newest') {
-    items = [...items].sort((a, b) => b.id - a.id);
-  }
-  const limit = params?.limit ?? 12;
   return {
-    data: items.slice(0, limit),
+    data: formattedData,
     meta: {
-      total: items.length,
-      lastPage: Math.ceil(items.length / limit),
-    },
+      total: meta.total,
+      lastPage: meta.totalPages || 1
+    }
   };
 };
 
-export const getProductBySlug = async (_slug: string): Promise<ProductDetail> => {
-  return dummyDetailProduct;
+export const getProductBySlug = async (slug: string): Promise<ProductDetail> => {
+  const { data } = await api.get(`/products/${slug}`);
+  const p: BackendProduct = data.data || data;
+  
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: Number(p.variants?.[0]?.price || p.price || 0),
+    comparePrice: p.compare_price ? Number(p.compare_price) : undefined,
+    thumbnailUrl: p.images?.find((img) => img.is_primary === 1 || img.is_primary === true)?.url || p.thumbnailUrl || '',
+    category: p.category || { id: 0, name: 'Kategori', slug: 'kategori' },
+    stockStatus: p.stockStatus || 'in_stock',
+    ratingAverage: p.rating_summary?.rating_avg || p.ratingAverage || 5,
+    totalReviews: p.rating_summary?.total_reviews || p.totalReviews || 0,
+    isFeatured: p.is_featured === 1 || p.is_featured === true,
+    isNew: p.isNew || false,
+    description: p.description || '',
+    images: (p.images || []).map((img) => ({
+      id: img.id,
+      url: img.url,
+      alt: img.alt_text || p.name,
+      isPrimary: img.is_primary === 1 || img.is_primary === true,
+      sortOrder: img.sort_order || 0
+    })),
+    variants: (p.variants || []).map((v) => ({
+      id: v.id,
+      sku: v.sku,
+      price: Number(v.price),
+      stock: v.stock,
+      stockStatus: v.stock > 0 ? ('in_stock' as const) : ('out_of_stock' as const),
+      options: (v.attrs || []).map((a, idx) => ({
+        id: idx + 1,
+        name: a.attr_name,
+        value: a.attr_value
+      }))
+    }))
+  };
 };
 
 export const getFeaturedProducts = async (): Promise<ProductListItem[]> => {
-  return dummyListProducts.filter((p) => p.isFeatured).slice(0, 8);
+  const { data } = await api.get('/products', { params: { is_featured: 'true' } });
+  const list: BackendProduct[] = data.data || data || [];
+  return list.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: Number(p.min_price || p.price || 0),
+    comparePrice: p.base_compare_price ? Number(p.base_compare_price) : undefined,
+    thumbnailUrl: p.primary_image || p.thumbnailUrl || '',
+    category: {
+      id: p.category_id || p.category?.id || 0,
+      name: p.category_name || p.category?.name || 'Kategori',
+      slug: p.category_slug || p.category?.slug || 'kategori',
+    },
+    stockStatus: p.stockStatus || 'in_stock',
+    ratingAverage: p.ratingAverage || 5,
+    totalReviews: p.totalReviews || 0,
+    isFeatured: p.is_featured === 1 || p.is_featured === true,
+    isNew: p.isNew || false
+  }));
+};
+
+export const getBrands = async () => {
+  const { data } = await api.get('/brands');
+  return data.data || data;
+};
+
+export const getBrandBySlug = async (slug: string) => {
+  const { data } = await api.get(`/brands/${slug}`);
+  return data.data || data;
 };

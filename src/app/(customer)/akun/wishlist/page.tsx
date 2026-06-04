@@ -2,31 +2,38 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getWishlist, toggleWishlist } from '@/services/api/users';
+import { getProducts } from '@/services/api/products';
 import { ProductCard } from '@/components/shared/ProductCard';
+import { useWishlistStore } from '@/stores/wishlistStore';
 import { Loader2, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AccountPageHeader } from '@/components/customer/AccountPageHeader';
+import type { ProductListItem } from '@/types/product.types';
 
 export default function WishlistPage() {
-  const [wishlist, setWishlist] = useState<any[]>([]);
+  const [wishlist, setWishlist] = useState<ProductListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchWishlist = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getWishlist();
-      setWishlist(data);
-    } catch (error) {
-      toast.error('Gagal memuat wishlist');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const productIds = useWishlistStore((state) => state.productIds);
 
   useEffect(() => {
+    const fetchWishlist = async () => {
+      setIsLoading(true);
+      try {
+        const { data } = await getProducts({ limit: 100 });
+        const items = data.filter((p) => productIds.has(p.id));
+        setWishlist(items);
+      } catch {
+        toast.error('Gagal memuat wishlist');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchWishlist();
-  }, []);
+  }, [productIds]);
+
+
 
   return (
     <div>
@@ -57,7 +64,7 @@ export default function WishlistPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {wishlist.map((item) => (
             // Asumsi item mengembalikan object yang didalamnya ada 'product'
-            <ProductCard key={item.id} product={item.product || item} />
+            <ProductCard key={item.id} product={item} />
           ))}
         </div>
       )}

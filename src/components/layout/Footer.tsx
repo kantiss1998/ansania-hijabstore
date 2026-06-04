@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 
@@ -50,9 +51,14 @@ export function Footer() {
           <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-5">
             <div>
               <Link href={ROUTES.HOME}>
-                <span className="font-display font-black text-2xl text-white tracking-[-0.05em] hover:text-primary-400 transition-colors">
-                  ansania
-                </span>
+                <Image
+                  src="/Ansania.png"
+                  alt="Ansania Logo"
+                  width={120}
+                  height={32}
+                  className="h-8 w-auto object-contain brightness-0 invert"
+                  priority
+                />
               </Link>
               <p className="text-sm text-white/35 font-body leading-relaxed mt-3">
                 Fashion muslim premium untuk generasi modern. Quality meets style.

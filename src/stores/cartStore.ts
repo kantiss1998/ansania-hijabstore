@@ -5,7 +5,7 @@ import { useAuthStore } from './authStore';
 import toast from 'react-hot-toast';
 
 export interface CartItem {
-  id: number; // Item ID dari database
+  id: number;
   productId: number;
   variantId: number;
   productName: string;
@@ -15,20 +15,42 @@ export interface CartItem {
   price: number;
   qty: number;
   maxQty: number;
+  weight_gram?: number;
 }
 
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
   isLoading: boolean;
+  sessionId: string | null;
   openDrawer: () => void;
   closeDrawer: () => void;
+  getSessionId: () => string | null;
   syncCart: () => Promise<void>;
   addItem: (item: Partial<CartItem> & { variantId: number; qty: number }) => Promise<void>;
   updateQty: (itemId: number, qty: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  mergeGuestCart: () => Promise<void>;
   getTotal: () => number;
+}
+
+interface ApiCartItem {
+  id: number;
+  productId: number;
+  variantId: number;
+  qty: number;
+  price: number;
+  weight_gram?: number;
+  product: {
+    name: string;
+    slug: string;
+    thumbnail_url: string;
+  };
+  variant: {
+    sku: string;
+    stock: number;
+  };
 }
 
 export const useCartStore = create<CartState>()(
@@ -37,23 +59,36 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
       isLoading: false,
+      sessionId: null,
 
       openDrawer: () => set({ isOpen: true }),
       closeDrawer: () => set({ isOpen: false }),
 
+      getSessionId: () => {
+        let sessId = get().sessionId;
+        if (!sessId && typeof window !== 'undefined') {
+          sessId = localStorage.getItem('ansania-session-id');
+          if (!sessId) {
+            sessId = 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem('ansania-session-id', sessId);
+          }
+          set({ sessionId: sessId });
+        }
+        return sessId;
+      },
+
       syncCart: async () => {
         const { isAuthenticated } = useAuthStore.getState();
-        if (!isAuthenticated) return; // Jika belum login, gunakan state lokal
+        const sessId = !isAuthenticated ? get().getSessionId() : undefined;
 
         set({ isLoading: true });
         try {
-          const cartData = await getCart();
+          const cartData = await getCart(sessId || undefined);
           if (cartData && cartData.items) {
-            // Mapping dari API response ke CartItem lokal
-            const mappedItems = cartData.items.map((apiItem: any) => ({
+            const mappedItems = cartData.items.map((apiItem: ApiCartItem) => ({
               id: apiItem.id,
-              productId: apiItem.product_id,
-              variantId: apiItem.variant_id,
+              productId: apiItem.productId,
+              variantId: apiItem.variantId,
               productName: apiItem.product.name,
               productSlug: apiItem.product.slug,
               variantName: apiItem.variant.sku,
@@ -61,6 +96,7 @@ export const useCartStore = create<CartState>()(
               price: apiItem.price,
               qty: apiItem.qty,
               maxQty: apiItem.variant.stock,
+              weight_gram: apiItem.weight_gram,
             }));
             set({ items: mappedItems });
           }
@@ -73,84 +109,70 @@ export const useCartStore = create<CartState>()(
 
       addItem: async (item) => {
         const { isAuthenticated } = useAuthStore.getState();
+        const sessId = !isAuthenticated ? get().getSessionId() : undefined;
         
-        if (isAuthenticated) {
-          try {
-            set({ isLoading: true });
-            await addToCart({ variant_id: item.variantId, qty: item.qty });
-            await get().syncCart(); // Refresh cart dari server
-            toast.success('Produk ditambahkan ke keranjang');
-          } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Gagal menambahkan ke keranjang');
-          } finally {
-            set({ isLoading: false });
-          }
-        } else {
-          // Fallback lokal jika belum login
-          set((state) => {
-            const existingItem = state.items.find((i) => i.variantId === item.variantId);
-            if (existingItem) {
-              const newQty = Math.min(existingItem.qty + item.qty, existingItem.maxQty);
-              return {
-                items: state.items.map((i) =>
-                  i.variantId === item.variantId ? { ...i, qty: newQty } : i
-                ),
-              };
-            }
-            // Generate temporary ID
-            const tempItem = { ...item, id: Date.now() } as CartItem;
-            return { items: [...state.items, tempItem] };
-          });
-          toast.success('Produk ditambahkan ke keranjang (Lokal)');
+        try {
+          set({ isLoading: true });
+          await addToCart({ variant_id: item.variantId, quantity: item.qty }, sessId || undefined);
+          await get().syncCart();
+          toast.success('Produk ditambahkan ke keranjang');
+        } catch (error) {
+          const err = error as { response?: { data?: { message?: string } } };
+          toast.error(err.response?.data?.message || 'Gagal menambahkan ke keranjang');
+        } finally {
+          set({ isLoading: false });
         }
       },
 
       updateQty: async (itemId, qty) => {
         const { isAuthenticated } = useAuthStore.getState();
+        const sessId = !isAuthenticated ? get().getSessionId() : undefined;
         
-        if (isAuthenticated) {
-          try {
-            await updateCartItem(itemId, qty);
-            await get().syncCart();
-          } catch (error) {
-            toast.error('Gagal mengupdate kuantitas');
-          }
-        } else {
-          set((state) => ({
-            items: state.items.map((i) => (i.id === itemId ? { ...i, qty } : i)),
-          }));
+        try {
+          await updateCartItem(itemId, qty, sessId || undefined);
+          await get().syncCart();
+        } catch {
+          toast.error('Gagal mengupdate kuantitas');
         }
       },
 
       removeItem: async (itemId) => {
         const { isAuthenticated } = useAuthStore.getState();
+        const sessId = !isAuthenticated ? get().getSessionId() : undefined;
         
-        if (isAuthenticated) {
-          try {
-            await removeCartItem(itemId);
-            await get().syncCart();
-            toast.success('Item dihapus');
-          } catch (error) {
-            toast.error('Gagal menghapus item');
-          }
-        } else {
-          set((state) => ({
-            items: state.items.filter((i) => i.id !== itemId),
-          }));
+        try {
+          await removeCartItem(itemId, sessId || undefined);
+          await get().syncCart();
+          toast.success('Item dihapus');
+        } catch {
+          toast.error('Gagal menghapus item');
         }
       },
 
       clearCart: async () => {
         const { isAuthenticated } = useAuthStore.getState();
-        if (isAuthenticated) {
-          try {
-            await apiClearCart();
-            set({ items: [] });
-          } catch (error) {
-            console.error('Clear cart failed', error);
-          }
-        } else {
+        const sessId = !isAuthenticated ? get().getSessionId() : undefined;
+        try {
+          await apiClearCart(sessId || undefined);
           set({ items: [] });
+        } catch (error) {
+          console.error('Clear cart failed', error);
+        }
+      },
+
+      mergeGuestCart: async () => {
+        const sessId = get().sessionId || (typeof window !== 'undefined' ? localStorage.getItem('ansania-session-id') : null);
+        if (!sessId) return;
+
+        try {
+          const { mergeCart: apiMergeCart } = await import('@/services/api/cart');
+          await apiMergeCart(sessId);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('ansania-session-id');
+          }
+          set({ sessionId: null });
+        } catch (error) {
+          console.error('Failed to merge guest cart:', error);
         }
       },
 
@@ -160,8 +182,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'ansania-cart',
-      // Hanya persisten item lokal. Jika login, item akan dioverride oleh syncCart
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ items: state.items, sessionId: state.sessionId }),
     }
   )
 );

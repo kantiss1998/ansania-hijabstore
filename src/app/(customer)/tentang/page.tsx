@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { Heart, Star, Target, ShieldCheck } from 'lucide-react';
 import { PageHero } from '@/components/customer/PageHero';
 
@@ -28,10 +29,13 @@ export default function TentangKamiPage() {
         <div className="container-main">
           <div className="grid md:grid-cols-2 gap-10 lg:gap-14 items-center">
             <div className="relative aspect-[4/5] rounded-4xl overflow-hidden border border-primary-100 shadow-[0_24px_60px_-32px_rgba(245,45,110,0.35)]">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1594912959827-020abcb01b05?q=80&w=2070&auto=format&fit=crop"
                 alt="Workshop ansania"
+                width={800}
+                height={1000}
                 className="h-full w-full object-cover"
+                unoptimized
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark/70 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white">

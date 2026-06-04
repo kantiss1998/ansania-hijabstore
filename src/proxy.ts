@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+function decodeJWT(token: string) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = atob(payloadBase64);
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -13,14 +25,18 @@ export function proxy(req: NextRequest) {
   // Admin only
   const isAdmin = pathname.startsWith('/admin');
 
-  // TODO: Decode JWT untuk cek role 'admin'. Sementara kita hanya cek keberadaan token.
   if (isProtected && !token) {
     return NextResponse.redirect(new URL('/masuk', req.url));
   }
 
-  if (isAdmin && !token) {
-    // Idealnya decode JWT dan periksa user.role === 'admin'
-    return NextResponse.redirect(new URL('/masuk', req.url));
+  if (isAdmin) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/masuk', req.url));
+    }
+    const decoded = decodeJWT(token);
+    if (!decoded || decoded.role !== 'admin') {
+      return NextResponse.redirect(new URL('/masuk', req.url));
+    }
   }
 
   // Mencegah user yang sudah login mengakses halaman auth
@@ -28,6 +44,10 @@ export function proxy(req: NextRequest) {
   const isAuthPage = authPaths.some((p) => pathname.startsWith(p));
 
   if (isAuthPage && token) {
+    const decoded = decodeJWT(token);
+    if (decoded?.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', req.url));
+    }
     return NextResponse.redirect(new URL('/akun/profil', req.url));
   }
 

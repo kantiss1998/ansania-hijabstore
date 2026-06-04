@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getActiveFlashSale } from '@/services/api/flashSales';
 import { ProductCard } from '@/components/shared/ProductCard';
+
+export const dynamic = 'force-dynamic';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHero } from '@/components/customer/PageHero';
 import { ROUTES } from '@/constants/routes';

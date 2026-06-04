@@ -16,7 +16,8 @@ export const useWishlistStore = create<WishlistStore>()(
     (set, get) => ({
       productIds: new Set<number>(),
 
-      toggle: (productId) => {
+      toggle: async (productId) => {
+        // Optimistic local update
         set((state) => {
           const next = new Set(state.productIds);
           if (next.has(productId)) {
@@ -26,6 +27,14 @@ export const useWishlistStore = create<WishlistStore>()(
           }
           return { productIds: next };
         });
+
+        // Call API
+        try {
+          const { toggleWishlist } = await import('@/services/api/users');
+          await toggleWishlist(productId);
+        } catch (error) {
+          console.error('Failed to sync wishlist toggle with backend:', error);
+        }
       },
 
       isWishlisted: (productId) => get().productIds.has(productId),

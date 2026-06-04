@@ -52,9 +52,9 @@ export function SocialSection() {
         {/* Header */}
         <div className="section-header mb-6">
           <div>
-            <p className="section-label mb-1.5">Community</p>
+            <p className="section-label mb-1.5">Komunitas</p>
             <h2 className="section-title">
-              Join the <span className="text-gradient-brand">squad</span>
+              Gabung <span className="text-gradient-brand">Komunitas Kami</span>
             </h2>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { ProductCard } from '@/components/shared/ProductCard';
 import { Pagination } from '@/components/shared/Pagination';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHero } from '@/components/customer/PageHero';
+import { MobileFilter } from '@/components/product/MobileFilter';
 import { ROUTES } from '@/constants/routes';
 import { getProducts } from '@/services/api/products';
 import { getCategories } from '@/services/api/categories';
@@ -79,7 +80,7 @@ export default async function ProductListingPage({
 
       <div className="container-main py-8 sm:py-10">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          <aside className="w-full lg:w-64 flex-shrink-0">
+          <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="rounded-3xl border border-primary-100/80 bg-white p-5 sm:p-6 sticky top-28 shadow-[0_20px_50px_-40px_rgba(245,45,110,0.35)]">
               <div className="flex items-center gap-2 mb-5 pb-4 border-b border-primary-100/60">
                 <Filter className="h-4 w-4 text-primary-500" />
@@ -150,13 +151,12 @@ export default async function ProductListingPage({
                 <span className="font-display font-bold text-dark">{products.length}</span> dari{' '}
                 <span className="font-display font-bold text-dark">{meta.total}</span> produk
               </p>
-              <button
-                type="button"
-                className="lg:hidden flex items-center justify-center gap-2 rounded-full border border-primary-200 py-2.5 px-5 text-xs font-display font-bold text-dark w-full sm:w-auto hover:bg-primary-50 transition-colors"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                Filter
-              </button>
+              <MobileFilter 
+                categories={categories} 
+                currentCategory={category} 
+                currentSort={sort} 
+                query={q} 
+              />
             </div>
 
             {products.length > 0 ? (

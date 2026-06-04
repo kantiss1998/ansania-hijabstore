@@ -1,10 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingCart, Users, Tag,
-  Image as ImageIcon, RefreshCw, Settings, LogOut, Search, Bell
+  Image as ImageIcon, RefreshCw, Settings, LogOut, Search, Bell,
+  Menu, X, ChevronDown, Globe
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { ROUTES } from '@/constants/routes';
@@ -19,6 +22,12 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   const handleLogout = () => {
     logout();
@@ -61,12 +70,40 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar Backdrop for Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 fixed h-full z-20 flex flex-col hidden lg:flex">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
-          <Link href="/admin" className="text-xl font-black font-heading text-primary-600">
-            ansania <span className="text-gray-400 text-sm font-normal uppercase tracking-widest ml-1">Admin</span>
+      <aside
+        className={cn(
+          "w-64 bg-white border-r border-gray-200 fixed h-full z-30 flex flex-col transition-transform duration-300 lg:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
+        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
+          <Link href="/admin" className="flex items-center gap-2">
+            <Image
+              src="/Ansania.png"
+              alt="Ansania Logo"
+              width={100}
+              height={26}
+              className="h-5.5 w-auto object-contain"
+              priority
+            />
+            <span className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Admin</span>
           </Link>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide space-y-8">
@@ -99,7 +136,14 @@ export default function AdminLayout({
           ))}
         </div>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-100 space-y-2">
+          <Link
+            href="/"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all border border-gray-200"
+          >
+            <Globe className="h-5 w-5 text-gray-500" />
+            Kembali ke Toko
+          </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all"
@@ -113,9 +157,16 @@ export default function AdminLayout({
       {/* Main Content */}
       <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-10 flex items-center justify-between px-6">
-          <div className="flex-1 max-w-md">
-            <div className="relative">
+        <header className="h-16 bg-white border-b border-gray-200 sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3 flex-1 max-w-md">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-primary-600 transition-colors cursor-pointer"
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-gray-400" />
               <input
                 type="text"
@@ -125,20 +176,61 @@ export default function AdminLayout({
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button className="relative p-2 text-gray-500 hover:text-primary-600 transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
             <div className="w-px h-6 bg-gray-200 mx-1"></div>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-900 leading-none">{user?.name || 'Administrator'}</p>
-                <p className="text-xs text-gray-500 mt-1">Super Admin</p>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-sm uppercase shadow-sm">
-                {user?.name?.charAt(0) || 'A'}
-              </div>
+            
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 sm:gap-3 cursor-pointer group focus:outline-none"
+              >
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold text-gray-900 leading-none group-hover:text-primary-600 transition-colors">
+                    {user?.name || 'Administrator'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">Super Admin</p>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold text-sm uppercase shadow-sm">
+                  {user?.name?.charAt(0) || 'A'}
+                </div>
+                <ChevronDown className="h-4 w-4 text-gray-500 group-hover:text-primary-600 transition-colors" />
+              </button>
+
+              {isProfileOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 animate-slide-down">
+                    <div className="px-4 py-2 border-b border-gray-100 sm:hidden">
+                      <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'Administrator'}</p>
+                      <p className="text-xs text-gray-500 truncate">Super Admin</p>
+                    </div>
+                    <Link
+                      href="/"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 font-body transition-colors"
+                    >
+                      <Globe className="h-4 w-4 text-gray-500" />
+                      Kembali ke Toko
+                    </Link>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-body cursor-pointer text-left transition-colors"
+                    >
+                      <LogOut className="h-4 w-4 text-red-500" />
+                      Keluar Admin
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
