@@ -6,6 +6,7 @@ import { Plus, Search, Edit2, Trash2, Award, Loader2, X, Save, Image as ImageIco
 import { getAdminBrands, createBrand, updateBrand, deleteBrand } from '@/services/api/admin';
 import toast from 'react-hot-toast';
 import type { AdminBrand } from '@/types/product.types';
+import { BACKEND_URL } from '@/lib/api';
 
 export default function AdminBrandPage() {
   const [brands, setBrands] = useState<AdminBrand[]>([]);
@@ -197,7 +198,7 @@ export default function AdminBrandPage() {
                         <div className="w-10 h-10 rounded-lg bg-orange-50 border border-orange-100 overflow-hidden flex items-center justify-center">
                           {brand.logo_url ? (
                             <Image
-                              src={brand.logo_url.startsWith('http') ? brand.logo_url : `http://localhost:3001${brand.logo_url}`}
+                              src={brand.logo_url.startsWith('http') ? brand.logo_url : `${BACKEND_URL}${brand.logo_url}`}
                               alt={brand.name}
                               width={40}
                               height={40}
@@ -321,7 +322,7 @@ export default function AdminBrandPage() {
                             ? logoPreview
                             : logoPreview.startsWith('http')
                             ? logoPreview
-                            : `http://localhost:3001${logoPreview}`
+                            : `${BACKEND_URL}${logoPreview}`
                         }
                         alt="Logo Preview"
                         width={64}

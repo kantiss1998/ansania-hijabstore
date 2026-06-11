@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 
 interface CartItemInput {
   variantId?: number;
@@ -53,7 +53,10 @@ export const getCart = async (sessionId?: string) => {
     product: {
       name: item.product_name,
       slug: item.product_slug || item.product_name.toLowerCase().replace(/ /g, '-'),
-      thumbnail_url: item.primary_image || item.thumbnail_url || ''
+      thumbnail_url: (() => {
+        const img = item.primary_image || item.thumbnail_url;
+        return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+      })()
     },
     variant: {
       sku: item.sku || '',

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { getAdminBanners, createBanner, updateBanner, deleteBanner } from '@/services/api/admin';
 import toast from 'react-hot-toast';
 import type { AdminBanner } from '@/types/product.types';
+import { BACKEND_URL } from '@/lib/api';
 
 export default function AdminBannerPage() {
   const [banners, setBanners] = useState<AdminBanner[]>([]);
@@ -178,7 +179,7 @@ export default function AdminBannerPage() {
                 <div className="aspect-[21/9] bg-gray-50 relative overflow-hidden">
                   {banner.image_url ? (
                     <Image
-                      src={banner.image_url.startsWith('http') ? banner.image_url : `http://localhost:3001${banner.image_url}`}
+                      src={banner.image_url.startsWith('http') ? banner.image_url : `${BACKEND_URL}${banner.image_url}`}
                       alt={banner.title}
                       width={400}
                       height={200}
@@ -349,7 +350,7 @@ export default function AdminBannerPage() {
                             ? imagePreview
                             : imagePreview.startsWith('http')
                             ? imagePreview
-                            : `http://localhost:3001${imagePreview}`
+                            : `${BACKEND_URL}${imagePreview}`
                         }
                         alt="Preview"
                         width={96}

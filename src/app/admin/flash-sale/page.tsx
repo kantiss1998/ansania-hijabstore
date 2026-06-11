@@ -15,6 +15,7 @@ import {
   getAdminProductDetail
 } from '@/services/api/admin';
 import toast from 'react-hot-toast';
+import { BACKEND_URL } from '@/lib/api';
 
 interface FlashSaleItem {
   id: number;
@@ -466,7 +467,7 @@ export default function AdminFlashSalePage() {
                               src={
                                 item.primary_image.startsWith('http')
                                   ? item.primary_image
-                                  : `http://localhost:3001${item.primary_image}`
+                                  : `${BACKEND_URL}${item.primary_image}`
                               }
                               alt={item.product_name}
                               width={40}

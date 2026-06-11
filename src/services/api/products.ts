@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 import type { ProductDetail, ProductFilter, ProductListItem } from '@/types/product.types';
 
 interface BackendProductImage {
@@ -57,8 +57,10 @@ export const getProducts = async (params?: ProductFilter): Promise<{ data: Produ
     name: p.name,
     slug: p.slug,
     price: Number(p.min_price || p.price || 0),
-    comparePrice: p.base_compare_price ? Number(p.base_compare_price) : undefined,
-    thumbnailUrl: p.primary_image || p.thumbnailUrl || '',
+    thumbnailUrl: (() => {
+      const img = p.primary_image || p.thumbnailUrl;
+      return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+    })(),
     category: {
       id: p.category_id || p.category?.id || 0,
       name: p.category_name || p.category?.name || 'Kategori',
@@ -89,8 +91,10 @@ export const getProductBySlug = async (slug: string): Promise<ProductDetail> => 
     name: p.name,
     slug: p.slug,
     price: Number(p.variants?.[0]?.price || p.price || 0),
-    comparePrice: p.compare_price ? Number(p.compare_price) : undefined,
-    thumbnailUrl: p.images?.find((img) => img.is_primary === 1 || img.is_primary === true)?.url || p.thumbnailUrl || '',
+    thumbnailUrl: (() => {
+      const img = p.images?.find((img) => img.is_primary === 1 || img.is_primary === true)?.url || p.thumbnailUrl;
+      return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+    })(),
     category: p.category || { id: 0, name: 'Kategori', slug: 'kategori' },
     stockStatus: p.stockStatus || 'in_stock',
     ratingAverage: p.rating_summary?.rating_avg || p.ratingAverage || 5,
@@ -100,7 +104,7 @@ export const getProductBySlug = async (slug: string): Promise<ProductDetail> => 
     description: p.description || '',
     images: (p.images || []).map((img) => ({
       id: img.id,
-      url: img.url,
+      url: img.url.startsWith('http') ? img.url : `${BACKEND_URL}${img.url}`,
       alt: img.alt_text || p.name,
       isPrimary: img.is_primary === 1 || img.is_primary === true,
       sortOrder: img.sort_order || 0
@@ -128,8 +132,10 @@ export const getFeaturedProducts = async (): Promise<ProductListItem[]> => {
     name: p.name,
     slug: p.slug,
     price: Number(p.min_price || p.price || 0),
-    comparePrice: p.base_compare_price ? Number(p.base_compare_price) : undefined,
-    thumbnailUrl: p.primary_image || p.thumbnailUrl || '',
+    thumbnailUrl: (() => {
+      const img = p.primary_image || p.thumbnailUrl;
+      return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+    })(),
     category: {
       id: p.category_id || p.category?.id || 0,
       name: p.category_name || p.category?.name || 'Kategori',

@@ -130,8 +130,8 @@ export default function AdminTambahProdukPage() {
         price,
         compare_price: comparePrice || null,
         weight_gram: weightGram,
-        is_active: isActive ? 1 : 0,
-        is_featured: isFeatured ? 1 : 0
+        is_active: isActive,
+        is_featured: isFeatured
       };
 
       const resProduct = await createProduct(productPayload);
@@ -146,7 +146,7 @@ export default function AdminTambahProdukPage() {
           price: variant.price || price,
           stock: variant.stock,
           weight_gram: variant.weight_gram || weightGram,
-          is_active: 1
+          is_active: true
         });
       }
 

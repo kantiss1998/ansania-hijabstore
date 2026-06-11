@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 import type { FlashSale } from '@/types/product.types';
 
 interface BackendFlashSaleItem {
@@ -46,7 +46,7 @@ export const getActiveFlashSale = async (): Promise<FlashSale | null> => {
         slug: item.product_name.toLowerCase().replace(/ /g, '-') + '-' + item.variant_id,
         price: item.sale_price,
         comparePrice: item.original_price,
-        thumbnailUrl: item.primary_image || '',
+        thumbnailUrl: item.primary_image ? (item.primary_image.startsWith('http') ? item.primary_image : `${BACKEND_URL}${item.primary_image}`) : '',
         category: { id: 0, name: 'Uncategorized', slug: 'uncategorized' },
         stockStatus: item.quota > item.sold_count ? 'in_stock' : 'out_of_stock',
         ratingAverage: 4.8,

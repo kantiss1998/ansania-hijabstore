@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 import type { Banner } from '@/types/product.types';
 
 interface RawBanner {
@@ -17,7 +17,7 @@ export const getBanners = async (): Promise<Banner[]> => {
   return banners.map((b) => ({
     id: b.id,
     title: b.title,
-    imageUrl: b.image_url,
+    imageUrl: b.image_url ? (b.image_url.startsWith('http') ? b.image_url : `${BACKEND_URL}${b.image_url}`) : '',
     linkUrl: b.link_url,
     position: b.position,
     sortOrder: b.sort_order,

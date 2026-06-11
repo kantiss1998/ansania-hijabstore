@@ -35,7 +35,11 @@ export const getAdminOrders = async (params?: Record<string, unknown>) => {
 
 export const getAdminCategories = async () => {
   const { data } = await api.get('/admin/categories');
-  return data.data || data;
+  const list = data.data || data;
+  return list.map((cat: any) => ({
+    ...cat,
+    imageUrl: cat.image_url || cat.imageUrl || ''
+  }));
 };
 
 export const getAdminVouchers = async () => {

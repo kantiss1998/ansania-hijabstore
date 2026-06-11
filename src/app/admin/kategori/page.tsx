@@ -6,6 +6,7 @@ import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Save, Image as ImageIcon 
 import { getAdminCategories, createCategory, updateCategory, deleteCategory } from '@/services/api/admin';
 import type { Category } from '@/types/product.types';
 import toast from 'react-hot-toast';
+import { BACKEND_URL } from '@/lib/api';
 
 interface AdminCategory extends Category {
   is_active?: number;
@@ -206,7 +207,7 @@ export default function AdminKategoriPage() {
                         <div className="w-9 h-9 rounded-lg bg-primary-50 border border-primary-100 overflow-hidden flex items-center justify-center">
                           {cat.imageUrl ? (
                             <Image
-                              src={cat.imageUrl.startsWith('http') ? cat.imageUrl : `http://localhost:3001${cat.imageUrl}`}
+                              src={cat.imageUrl.startsWith('http') ? cat.imageUrl : `${BACKEND_URL}${cat.imageUrl}`}
                               alt={cat.name}
                               width={36}
                               height={36}
@@ -344,7 +345,7 @@ export default function AdminKategoriPage() {
                   <div className="w-16 h-16 rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center bg-gray-55 shrink-0">
                     {imagePreview ? (
                       <Image
-                        src={imagePreview.startsWith('data:') || imagePreview.startsWith('blob:') ? imagePreview : (imagePreview.startsWith('http') ? imagePreview : `http://localhost:3001${imagePreview}`)}
+                        src={imagePreview.startsWith('data:') || imagePreview.startsWith('blob:') ? imagePreview : (imagePreview.startsWith('http') ? imagePreview : `${BACKEND_URL}${imagePreview}`)}
                         alt="Preview"
                         width={64}
                         height={64}

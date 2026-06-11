@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 import type { Category } from '@/types/product.types';
 
 interface BackendCategory {
@@ -18,8 +18,10 @@ export const getCategories = async (): Promise<Category[]> => {
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
-    description: cat.description || '',
-    imageUrl: cat.image_url || cat.imageUrl || '',
+    imageUrl: (() => {
+      const img = cat.image_url || cat.imageUrl;
+      return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+    })(),
     productCount: cat.productCount || 0
   }));
 };
@@ -32,8 +34,10 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
-    description: cat.description || '',
-    imageUrl: cat.image_url || cat.imageUrl || '',
+    imageUrl: (() => {
+      const img = cat.image_url || cat.imageUrl;
+      return img ? (img.startsWith('http') ? img : `${BACKEND_URL}${img}`) : '';
+    })(),
     productCount: cat.productCount || 0
   };
 };

@@ -5,6 +5,7 @@ import { Save, Store, Globe, MapPin, Loader2, Image as ImageIcon } from 'lucide-
 import Image from 'next/image';
 import { getAdminSettings, updateSetting } from '@/services/api/admin';
 import toast from 'react-hot-toast';
+import { BACKEND_URL } from '@/lib/api';
 
 interface SettingItem {
   setting_key: string;
@@ -247,7 +248,7 @@ export default function AdminPengaturanPage() {
                           ? logoPreview
                           : logoPreview.startsWith('http')
                           ? logoPreview
-                          : `http://localhost:3001${logoPreview}`
+                          : `${BACKEND_URL}${logoPreview}`
                       }
                       alt="Logo Toko"
                       width={64}

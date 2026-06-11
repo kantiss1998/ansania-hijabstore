@@ -19,6 +19,7 @@ import {
 } from '@/services/api/admin';
 import toast from 'react-hot-toast';
 import type { AdminCategory as Category, AdminBrand as Brand, Variant, AdminProductImage as ProductImage } from '@/types/product.types';
+import { BACKEND_URL } from '@/lib/api';
 
 export default function AdminEditProdukPage() {
   const router = useRouter();
@@ -94,8 +95,8 @@ export default function AdminEditProdukPage() {
     }
   }, [productId, loadMutations]);
 
-  const handleManualAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleManualAdjustment = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!adjustingVariantId) {
       toast.error('Pilih varian yang akan disesuaikan');
       return;
@@ -289,8 +290,8 @@ export default function AdminEditProdukPage() {
         price,
         compare_price: comparePrice || null,
         weight_gram: weightGram,
-        is_active: isActive ? 1 : 0,
-        is_featured: isFeatured ? 1 : 0
+        is_active: isActive,
+        is_featured: isFeatured
       };
 
       await updateProduct(productId, productPayload);
@@ -305,7 +306,7 @@ export default function AdminEditProdukPage() {
             price: variant.price || price,
             stock: variant.stock,
             weight_gram: variant.weight_gram || weightGram,
-            is_active: variant.is_active ? 1 : 0
+            is_active: !!variant.is_active
           });
         } else {
           // Find matching original variant
@@ -325,7 +326,7 @@ export default function AdminEditProdukPage() {
                 name: variant.name,
                 price: variant.price,
                 weight_gram: variant.weight_gram,
-                is_active: variant.is_active ? 1 : 0
+                is_active: !!variant.is_active
               });
             }
 
@@ -595,7 +596,7 @@ export default function AdminEditProdukPage() {
               {/* Form Penyesuaian Manual */}
               <div className="space-y-4 md:border-r md:border-gray-100 md:pr-6">
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Penyesuaian Stok Manual</h4>
-                <form onSubmit={handleManualAdjustment} className="space-y-3.5">
+                <div className="space-y-3.5">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-gray-400">Varian Produk</label>
                     <select
@@ -648,7 +649,8 @@ export default function AdminEditProdukPage() {
                   </div>
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleManualAdjustment()}
                     disabled={isAdjusting || !adjustingVariantId || adjustQty === 0}
                     className="w-full btn btn-primary py-2 text-xs font-bold rounded-lg flex justify-center items-center gap-1.5 cursor-pointer"
                   >
@@ -660,7 +662,7 @@ export default function AdminEditProdukPage() {
                       'Simpan Penyesuaian'
                     )}
                   </button>
-                </form>
+                </div>
               </div>
 
               {/* Tabel Riwayat Mutasi */}
@@ -824,7 +826,7 @@ export default function AdminEditProdukPage() {
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {existingImages.map((image) => (
                   <div key={image.id} className="relative group rounded-lg overflow-hidden border border-gray-100 aspect-square">
-                    <Image src={image.url} alt="Product" width={150} height={150} className="w-full h-full object-cover" unoptimized />
+                    <Image src={image.url.startsWith('http') ? image.url : `${BACKEND_URL}${image.url}`} alt="Product" width={150} height={150} className="w-full h-full object-cover" unoptimized />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         type="button"

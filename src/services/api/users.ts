@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import { api, BACKEND_URL } from '@/lib/api';
 import type { User, Address } from '@/types/user.types';
 
 interface BackendAddress {
@@ -92,7 +92,7 @@ export const getWishlist = async () => {
       name: item.product_name,
       slug: item.product_slug,
       price: item.min_price || 0,
-      thumbnailUrl: item.primary_image || '',
+      thumbnailUrl: item.primary_image ? (item.primary_image.startsWith('http') ? item.primary_image : `${BACKEND_URL}${item.primary_image}`) : '',
       category: { name: 'Kategori' }
     }
   }));
