@@ -72,7 +72,7 @@ export function CartDrawer() {
                 {/* Image */}
                 <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 border border-black/[0.05]">
                   <Image
-                    src={item.thumbnailUrl}
+                    src={item.thumbnailUrl && typeof item.thumbnailUrl === 'string' && item.thumbnailUrl.trim() !== '' ? item.thumbnailUrl : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'}
                     alt={item.productName}
                     width={80}
                     height={80}

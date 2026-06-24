@@ -26,6 +26,8 @@ export interface ProductImage {
   alt: string;
   isPrimary: boolean;
   sortOrder: number;
+  variantId?: number | null;
+  variant_id?: number | null;
 }
 
 export interface ProductCategory {
@@ -253,4 +255,5 @@ export interface AdminProductImage {
   url: string;
   is_primary: number;
   sort_order: number;
+  variant_id?: number | null;
 }

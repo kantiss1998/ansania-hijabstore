@@ -177,7 +177,7 @@ export default function AdminBannerPage() {
             {banners.map((banner) => (
               <div key={banner.id} className="border border-gray-100 rounded-2xl overflow-hidden group shadow-sm flex flex-col justify-between">
                 <div className="aspect-[21/9] bg-gray-50 relative overflow-hidden">
-                  {banner.image_url ? (
+                  {banner.image_url && typeof banner.image_url === 'string' && banner.image_url.trim() !== '' ? (
                     <Image
                       src={banner.image_url.startsWith('http') ? banner.image_url : `${BACKEND_URL}${banner.image_url}`}
                       alt={banner.title}
@@ -343,7 +343,7 @@ export default function AdminBannerPage() {
                 <label className="text-xs font-bold text-gray-500 block">Gambar Banner *</label>
                 <div className="flex items-center gap-4">
                   <div className="w-24 h-12 rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center bg-gray-50 shrink-0">
-                    {imagePreview ? (
+                    {imagePreview && typeof imagePreview === 'string' && imagePreview.trim() !== '' ? (
                       <Image
                         src={
                           imagePreview.startsWith('data:') || imagePreview.startsWith('blob:')

@@ -44,6 +44,12 @@ export default function AdminTambahProdukPage() {
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   
+  // Specifications state
+  const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([
+    { key: 'Bahan', value: '' },
+    { key: 'Ukuran', value: '' }
+  ]);
+  
   // Variants state
   const [variants, setVariants] = useState<VariantInput[]>([
     { sku: '', name: 'Default', price: 0, stock: 10, weight_gram: 200 }
@@ -121,6 +127,14 @@ export default function AdminTambahProdukPage() {
 
     setIsSubmitting(true);
     try {
+      // Convert specifications array to JSON object
+      const specsObj = specifications.reduce((acc, curr) => {
+        if (curr.key.trim()) {
+          acc[curr.key.trim()] = curr.value.trim();
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
       // 1. Create base product
       const productPayload = {
         name,
@@ -131,7 +145,8 @@ export default function AdminTambahProdukPage() {
         compare_price: comparePrice || null,
         weight_gram: weightGram,
         is_active: isActive,
-        is_featured: isFeatured
+        is_featured: isFeatured,
+        specifications: Object.keys(specsObj).length > 0 ? specsObj : null
       };
 
       const resProduct = await createProduct(productPayload);
@@ -298,6 +313,60 @@ export default function AdminTambahProdukPage() {
                 className="input py-2 text-sm"
               />
             </div>
+          </div>
+
+          {/* Specifications Panel */}
+          <div className="card border border-gray-100 p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+              <h3 className="text-base font-bold text-gray-900">Spesifikasi Produk</h3>
+              <button
+                type="button"
+                onClick={() => setSpecifications(prev => [...prev, { key: '', value: '' }])}
+                className="btn btn-outline py-1 px-3 text-xs font-bold flex items-center gap-1.5 rounded-lg"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah Baris
+              </button>
+            </div>
+            
+            {specifications.length === 0 ? (
+              <p className="text-xs text-gray-400 py-2">Belum ada spesifikasi ditambahkan.</p>
+            ) : (
+              <div className="space-y-3">
+                {specifications.map((spec, idx) => (
+                  <div key={idx} className="flex gap-3 items-center">
+                    <input
+                      type="text"
+                      placeholder="Nama Atribut (cth: Bahan)"
+                      value={spec.key}
+                      onChange={(e) => {
+                        const updated = [...specifications];
+                        updated[idx].key = e.target.value;
+                        setSpecifications(updated);
+                      }}
+                      className="input py-1.5 px-3 text-xs flex-1"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nilai Atribut (cth: Voal Premium)"
+                      value={spec.value}
+                      onChange={(e) => {
+                        const updated = [...specifications];
+                        updated[idx].value = e.target.value;
+                        setSpecifications(updated);
+                      }}
+                      className="input py-1.5 px-3 text-xs flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSpecifications(prev => prev.filter((_, i) => i !== idx))}
+                      className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Variants Management */}

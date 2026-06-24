@@ -1,5 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Garet';
+  src: url('/fonts/Garet-Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Garet';
+  src: url('/fonts/Garet-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ─── Tailwind v4 Theme ──────────────────────────────────────────────── */
 @theme {
@@ -21,8 +37,8 @@
   --color-accent-gold: #F5A623;
   --color-dark: #0A0A0A;
 
-  --font-family-display: 'Syne', sans-serif;
-  --font-family-body: 'Space Grotesk', sans-serif;
+  --font-family-display: 'Garet', 'Syne', sans-serif;
+  --font-family-body: 'Arimo', 'Space Grotesk', sans-serif;
   --font-family-mono: 'Inter', monospace;
 
   --radius-4xl: 2rem;
@@ -97,7 +113,7 @@
   }
 
   body {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Arimo', 'Space Grotesk', sans-serif;
     color: #0A0A0A;
     background-color: #FFFBFC;
     min-height: 100vh;
@@ -105,7 +121,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Garet', 'Syne', sans-serif;
     letter-spacing: -0.03em;
     color: #0A0A0A;
   }

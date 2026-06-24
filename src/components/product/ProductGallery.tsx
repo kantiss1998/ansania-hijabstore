@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,9 +16,30 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, discount, flashSalePrice, productName }: ProductGalleryProps) {
   const [activeImage, setActiveImage] = useState(0);
 
-  const displayImages = images && images.length > 0 
-    ? images 
-    : [{ id: 1, url: '/images/placeholder.jpg', alt: productName }];
+  const validImages = (images || []).filter(img => img && img.url && img.url.trim() !== '');
+
+  const displayImages = validImages.length > 0 
+    ? validImages 
+    : [{ id: 1, url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=800&auto=format&fit=crop', alt: productName } as ProductImage];
+
+  useEffect(() => {
+    const handleVariantChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ variantId: number }>;
+      const variantId = customEvent.detail?.variantId;
+      if (variantId) {
+        // Find index of image that is assigned to this variant
+        const idx = displayImages.findIndex(img => img.variant_id === variantId || img.variantId === variantId);
+        if (idx !== -1) {
+          setActiveImage(idx);
+        }
+      }
+    };
+
+    window.addEventListener('variant-changed', handleVariantChange);
+    return () => {
+      window.removeEventListener('variant-changed', handleVariantChange);
+    };
+  }, [displayImages]);
 
   return (
     <div className="space-y-4">

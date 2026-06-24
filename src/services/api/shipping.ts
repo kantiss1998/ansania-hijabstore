@@ -20,3 +20,9 @@ export const trackShipment = async (courier: string, awb: string) => {
   const { data } = await api.get(`/shipping/track/${courier}/${awb}`);
   return data.data || data;
 };
+
+export const getDistricts = async (cityId?: string) => {
+  const params = cityId ? { city_id: cityId } : undefined;
+  const { data } = await api.get('/shipping/districts', { params });
+  return data.data || data;
+};

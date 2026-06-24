@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import Cookies from 'js-cookie';
 import { User } from '@/types/user.types';
 import toast from 'react-hot-toast';
+import { mapUserToFrontend } from '@/lib/utils';
 
 interface AuthState {
   user: User | null;
@@ -39,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
             Cookies.set('refreshToken', refreshToken, { expires: 7 });
           }
           
-          set({ user, isAuthenticated: true, isLoading: false });
+          set({ user: mapUserToFrontend(user), isAuthenticated: true, isLoading: false });
 
           // Sync wishlist dari database
           try {
@@ -87,7 +88,7 @@ export const useAuthStore = create<AuthState>()(
             Cookies.set('refreshToken', refreshToken, { expires: 7 });
           }
           
-          set({ user, isAuthenticated: true, isLoading: false });
+          set({ user: mapUserToFrontend(user), isAuthenticated: true, isLoading: false });
 
           // Sync wishlist dari database
           try {
@@ -135,7 +136,7 @@ export const useAuthStore = create<AuthState>()(
             Cookies.set('refreshToken', refreshToken, { expires: 7 });
           }
           
-          set({ user, isAuthenticated: true, isLoading: false });
+          set({ user: mapUserToFrontend(user), isAuthenticated: true, isLoading: false });
 
           // Sync wishlist dari database
           try {
@@ -193,7 +194,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { getProfile: apiGetProfile } = await import('@/services/api/auth');
           const user = await apiGetProfile();
-          set({ user, isAuthenticated: true });
+          set({ user: mapUserToFrontend(user), isAuthenticated: true });
 
           // Sync wishlist dari database
           try {

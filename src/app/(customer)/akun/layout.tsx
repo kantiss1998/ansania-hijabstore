@@ -50,7 +50,7 @@ export default function AccountLayout({
                       {user?.email}
                     </p>
                     <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-accent-lime/90 px-2 py-0.5 text-[9px] font-display font-black uppercase tracking-wider text-dark">
-                      ★ {user?.loyaltyTier || 'Gold'} Member
+                      ★ {user?.loyaltyTier || 'BRONZE'} Member
                     </span>
                   </div>
                 </div>

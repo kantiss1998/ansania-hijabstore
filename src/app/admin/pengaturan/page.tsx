@@ -29,6 +29,10 @@ export default function AdminPengaturanPage() {
     shipping_postal_code: '',
     social_instagram: '',
     social_facebook: '',
+    social_tiktok: '',
+    show_guarantee_ori: '1',
+    show_free_shipping: '1',
+    show_return_policy: '1',
     store_logo: ''
   });
 
@@ -134,6 +138,7 @@ export default function AdminPengaturanPage() {
   const getGroupForKey = (key: string) => {
     if (key.startsWith('social_')) return 'social';
     if (key.startsWith('shipping_') || key === 'store_address') return 'shipping';
+    if (key.startsWith('show_')) return 'guarantees';
     return 'general';
   };
 
@@ -149,7 +154,11 @@ export default function AdminPengaturanPage() {
       shipping_city: 'Kota / Kabupaten',
       shipping_postal_code: 'Kode Pos',
       social_instagram: 'Instagram URL',
-      social_facebook: 'Facebook URL'
+      social_facebook: 'Facebook URL',
+      social_tiktok: 'TikTok URL',
+      show_guarantee_ori: 'Tampilkan Garansi Original',
+      show_free_shipping: 'Tampilkan Garansi Gratis Ongkir',
+      show_return_policy: 'Tampilkan Kebijakan Retur 30 Hari'
     };
     return labels[key] || key;
   };
@@ -362,6 +371,65 @@ export default function AdminPengaturanPage() {
                 onChange={(e) => handleChange('social_facebook', e.target.value)}
                 className="input w-full py-2 text-sm font-mono"
                 placeholder="https://facebook.com/ansania"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <label className="block text-xs font-bold text-gray-500">TikTok URL</label>
+              <input
+                type="url"
+                value={settings.social_tiktok || ''}
+                onChange={(e) => handleChange('social_tiktok', e.target.value)}
+                className="input w-full py-2 text-sm font-mono"
+                placeholder="https://tiktok.com/@ansania"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Guarantees Section */}
+        <div className="card p-6 border border-gray-100 bg-white rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">
+            <Globe className="h-5 w-5 text-primary-500" />
+            <h2 className="font-bold text-gray-900">Garansi & Kebijakan Toko</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+              <div>
+                <span className="font-bold text-gray-900 text-sm block">Garansi Original</span>
+                <span className="text-xs text-gray-400 font-semibold block">Tampilkan garansi original di detail produk.</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.show_guarantee_ori === '1'}
+                onChange={(e) => handleChange('show_guarantee_ori', e.target.checked ? '1' : '0')}
+                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+              <div>
+                <span className="font-bold text-gray-900 text-sm block">Gratis Ongkir</span>
+                <span className="text-xs text-gray-400 font-semibold block">Tampilkan info gratis ongkir di detail produk.</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.show_free_shipping === '1'}
+                onChange={(e) => handleChange('show_free_shipping', e.target.checked ? '1' : '0')}
+                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+              <div>
+                <span className="font-bold text-gray-900 text-sm block">Kebijakan Retur 30 Hari</span>
+                <span className="text-xs text-gray-400 font-semibold block">Tampilkan kebijakan retur 30 hari di detail produk.</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.show_return_policy === '1'}
+                onChange={(e) => handleChange('show_return_policy', e.target.checked ? '1' : '0')}
+                className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-gray-300 cursor-pointer"
               />
             </div>
           </div>

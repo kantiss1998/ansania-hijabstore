@@ -81,25 +81,8 @@ export default function GoogleSignInButton({ onSuccess, label = "Google" }: Goog
     }
   }, [scriptLoaded, clientId, initGoogleButton]);
 
-  const handleMockGoogleLogin = async () => {
-    const googleData = {
-      token: 'mock_google_token_' + Math.random().toString(36).substring(2, 10),
-      provider_id: 'google_sim_' + Math.random().toString(36).substring(2, 10),
-      email: `google.user.${Math.random().toString(36).substring(2, 6)}@ansania.local`,
-      name: 'Google User'
-    };
-    
-    toast.loading('Menghubungkan dengan Google (Mock)...', { id: 'oauth' });
-    const success = await loginOAuth('google', googleData);
-    toast.dismiss('oauth');
-    if (success) {
-      toast.success('Login Google (Mock) berhasil!');
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push(ROUTES.HOME);
-      }
-    }
+  const handleMockGoogleLogin = () => {
+    toast.error('Google Sign-In belum dikonfigurasi (NEXT_PUBLIC_GOOGLE_CLIENT_ID tidak ditemukan).');
   };
 
   // If client ID is set, load script and render GIS button

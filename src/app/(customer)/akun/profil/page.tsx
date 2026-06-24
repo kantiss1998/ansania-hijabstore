@@ -188,29 +188,63 @@ export default function ProfilePage() {
             </div>
             <div className="rounded-full bg-accent-lime/90 px-3 py-1 flex items-center gap-1.5">
               <Award className="h-3.5 w-3.5 text-dark" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider text-dark">{user?.loyaltyTier || 'Gold'}</span>
+              <span className="text-[9px] font-display font-black uppercase tracking-wider text-dark">{user?.loyaltyTier || 'BRONZE'}</span>
             </div>
           </div>
 
           {/* Card Middle & Progress */}
-          <div className="mt-6">
-            <div className="flex justify-between items-end mb-1.5">
-              <div>
-                <p className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">Total Poin Belanja</p>
-                <p className="text-2xl font-display font-black tracking-wider text-white mt-0.5">
-                  {user?.loyaltyPoints || '1,250'}{' '}
-                  <span className="text-xs font-bold font-body text-[#F52D6E]">PTS</span>
-                </p>
+          {(() => {
+            const pts = user?.loyaltyPoints ?? 0;
+            const tier = user?.loyaltyTier || 'BRONZE';
+            
+            let nextTier = 'SILVER';
+            let minPts = 0;
+            let targetPts = 500;
+
+            if (tier === 'SILVER') {
+              nextTier = 'GOLD';
+              minPts = 500;
+              targetPts = 1500;
+            } else if (tier === 'GOLD') {
+              nextTier = 'PLATINUM';
+              minPts = 1500;
+              targetPts = 3000;
+            } else if (tier === 'PLATINUM') {
+              nextTier = '';
+              minPts = 3000;
+              targetPts = 3000;
+            }
+
+            const pct = tier === 'PLATINUM' 
+              ? 100 
+              : Math.max(0, Math.min(100, ((pts - minPts) / (targetPts - minPts)) * 100));
+            const needed = tier === 'PLATINUM' ? 0 : Math.max(0, targetPts - pts);
+
+            return (
+              <div className="mt-6">
+                <div className="flex justify-between items-end mb-1.5">
+                  <div>
+                    <p className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">Total Poin Belanja</p>
+                    <p className="text-2xl font-display font-black tracking-wider text-white mt-0.5">
+                      {pts.toLocaleString('id-ID')}{' '}
+                      <span className="text-xs font-bold font-body text-[#F52D6E]">PTS</span>
+                    </p>
+                  </div>
+                  <div className="text-right text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">
+                    {tier === 'PLATINUM' ? (
+                      <span>Tingkat Maksimum</span>
+                    ) : (
+                      <span>{needed} PTS lagi menuju {nextTier}</span>
+                    )}
+                  </div>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-[#F52D6E] to-pink-400 rounded-full" style={{ width: `${pct}%` }} />
+                </div>
               </div>
-              <div className="text-right text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">
-                <span>250 PTS lagi menuju PLATINUM</span>
-              </div>
-            </div>
-            {/* Progress bar */}
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#F52D6E] to-pink-400 rounded-full" style={{ width: '75%' }} />
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -221,7 +255,7 @@ export default function ProfilePage() {
           className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none group"
         >
           <ShoppingBag className="h-5 w-5 text-gray-400 group-hover:text-[#0A0A0A] transition-colors mb-2" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.orderCount || '12'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.ordersCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Total Pesanan</span>
         </Link>
         <Link
@@ -229,12 +263,12 @@ export default function ProfilePage() {
           className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none group"
         >
           <Heart className="h-5 w-5 text-gray-400 group-hover:text-[#F52D6E] transition-colors mb-2" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.wishlistCount || '3'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.wishlistCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Wishlist</span>
         </Link>
         <div className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none">
           <Ticket className="h-5 w-5 text-[#F52D6E] mb-2 animate-pulse" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.voucherCount || '4'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.vouchersCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Voucher Aktif</span>
         </div>
       </div>

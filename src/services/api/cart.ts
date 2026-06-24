@@ -20,6 +20,7 @@ interface BackendCartItem {
   primary_image?: string;
   thumbnail_url?: string;
   sku?: string;
+  variant_name?: string;
   stock?: number;
   weight_gram?: number;
 }
@@ -60,6 +61,7 @@ export const getCart = async (sessionId?: string) => {
     },
     variant: {
       sku: item.sku || '',
+      name: item.variant_name || '',
       stock: item.stock || 0
     }
   }));

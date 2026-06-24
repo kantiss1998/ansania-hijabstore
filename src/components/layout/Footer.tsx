@@ -4,6 +4,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
+import { useQuery } from '@tanstack/react-query';
+import { getPublicSettings } from '@/services/api/cms';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -21,29 +24,52 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
-const SHOP = [
-  { name: 'New Arrival', href: `${ROUTES.PRODUCTS}?sort=newest` },
-  { name: 'Flash Sale', href: ROUTES.FLASH_SALE },
-  { name: 'Semua Produk', href: ROUTES.PRODUCTS },
-  { name: 'Kategori', href: '/kategori' },
-  { name: 'Brand', href: '/brand' },
-];
-const HELP = [
-  { name: 'Cara Belanja', href: '/cara-belanja' },
-  { name: 'Kebijakan Pengiriman', href: '/pengiriman' },
-  { name: 'Pengembalian Barang', href: '/retur' },
-  { name: 'Hubungi Kami', href: '/kontak' },
-  { name: 'Tentang Kami', href: '/tentang' },
-];
-
 export function Footer() {
   const year = new Date().getFullYear();
+  const { locale, t } = useTranslation();
+
+  const helpLinks = [
+    { name: locale === 'id' ? 'Cara Belanja' : 'How to Shop', href: '/cara-belanja' },
+    { name: locale === 'id' ? 'Kebijakan Pengiriman' : 'Shipping Policy', href: '/pengiriman' },
+    { name: locale === 'id' ? 'Pengembalian Barang' : 'Returns & Exchanges', href: '/retur' },
+    { name: locale === 'id' ? 'Hubungi Kami' : 'Contact Us', href: '/kontak' },
+    { name: locale === 'id' ? 'Tentang Kami' : 'About Us', href: '/tentang' },
+  ];
+
+  const { data: settings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: getPublicSettings,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const getSetting = (key: string, fallback: string) => {
+    return settings?.find(s => s.key === key || s.setting_key === key)?.value || fallback;
+  };
+
+  const instagramUrl = getSetting('social_instagram', '#');
+  const tiktokUrl = getSetting('social_tiktok', '#');
+  const rawWhatsapp = getSetting('social_whatsapp', '6281234567890');
+  
+  // Format WhatsApp number
+  let cleanWa = rawWhatsapp.replace(/\D/g, '');
+  if (cleanWa.startsWith('0')) {
+    cleanWa = '62' + cleanWa.slice(1);
+  }
+  const whatsappUrl = `https://wa.me/${cleanWa || '6281234567890'}`;
+
+  const storePhone = getSetting('store_phone', '+62 812 3456 7890');
+  const storeEmail = getSetting('store_email', 'halo@ansania.com');
+  const storeAddress = getSetting('store_address', 'Jakarta, Indonesia');
+
+  const shopLinks = [
+    { name: t('newArrivals'), href: `${ROUTES.PRODUCTS}?sort=newest` },
+    { name: t('flashSale'), href: ROUTES.FLASH_SALE },
+    { name: t('seeAll'), href: ROUTES.PRODUCTS },
+    { name: t('categories'), href: '/kategori' },
+  ];
 
   return (
     <footer className="bg-[#0A0A0A] text-white">
-      {/* Stay in the loop — dinonaktifkan sementara */}
-      {/* <div className="border-b border-white/[0.06]">...</div> */}
-
       {/* ── Main Grid ── */}
       <div className="container-main py-12">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
@@ -61,7 +87,9 @@ export function Footer() {
                 />
               </Link>
               <p className="text-sm text-white/35 font-body leading-relaxed mt-3">
-                Fashion muslim premium untuk generasi modern. Quality meets style.
+                {locale === 'id'
+                  ? 'Fashion muslim premium untuk generasi modern. Quality meets style.'
+                  : 'Premium Muslim fashion for the modern generation. Quality meets style.'}
               </p>
             </div>
 
@@ -74,19 +102,17 @@ export function Footer() {
                 {[
                   {
                     icon: InstagramIcon,
-                    href: '#',
+                    href: instagramUrl,
                     label: '@ansania.official',
-                    sub: '12K Followers',
                     bg: 'linear-gradient(135deg, #f43f5e, #a855f7)',
                   },
                   {
                     icon: TikTokIcon,
-                    href: '#',
+                    href: tiktokUrl,
                     label: '@ansania',
-                    sub: '8.5K Followers',
                     bg: '#1a1a1a',
                   },
-                ].map(({ icon: Icon, href, label, sub, bg }) => (
+                ].map(({ icon: Icon, href, label, bg }) => (
                   <a
                     key={label}
                     href={href}
@@ -104,7 +130,6 @@ export function Footer() {
                       <p className="text-xs font-display font-bold text-white/80 group-hover:text-white transition-colors">
                         {label}
                       </p>
-                      <p className="text-[9px] text-white/40 font-body leading-none mt-0.5">{sub}</p>
                     </div>
                   </a>
                 ))}
@@ -113,21 +138,21 @@ export function Footer() {
           </div>
 
           {/* Shop */}
-          <FooterGroup title="Belanja" links={SHOP} />
+          <FooterGroup title={t('products')} links={shopLinks} />
 
           {/* Help */}
-          <FooterGroup title="Bantuan" links={HELP} />
+          <FooterGroup title={locale === 'id' ? 'Bantuan' : 'Help'} links={helpLinks} />
 
           {/* Contact */}
           <div className="space-y-4">
             <h3 className="font-display font-bold text-white text-[11px] uppercase tracking-[0.15em]">
-              Kontak
+              {locale === 'id' ? 'Kontak' : 'Contact'}
             </h3>
             <ul className="space-y-3">
               {[
-                { icon: MapPin, text: 'Jakarta, Indonesia' },
-                { icon: Phone, text: '+62 812 3456 7890' },
-                { icon: Mail, text: 'halo@ansania.com' },
+                { icon: MapPin, text: storeAddress },
+                { icon: Phone, text: storePhone },
+                { icon: Mail, text: storeEmail },
               ].map(({ icon: Icon, text }) => (
                 <li key={text} className="flex items-center gap-2.5 text-white/40 text-sm font-body">
                   <Icon className="h-3.5 w-3.5 text-white/25 flex-shrink-0" />
@@ -136,13 +161,13 @@ export function Footer() {
               ))}
             </ul>
             <a
-              href="https://wa.me/6281234567890"
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[#25D366] text-white text-[12px] font-display font-bold hover:opacity-90 transition-opacity"
             >
               <MessageCircle className="h-3.5 w-3.5" />
-              Chat WhatsApp
+              {locale === 'id' ? 'Chat WhatsApp' : 'WhatsApp Chat'}
             </a>
           </div>
         </div>
@@ -156,8 +181,8 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-5">
             {[
-              { name: 'Kebijakan Privasi', href: '/kebijakan-privasi' },
-              { name: 'Syarat & Ketentuan', href: '/syarat-ketentuan' },
+              { name: locale === 'id' ? 'Kebijakan Privasi' : 'Privacy Policy', href: '/kebijakan-privasi' },
+              { name: locale === 'id' ? 'Syarat & Ketentuan' : 'Terms & Conditions', href: '/syarat-ketentuan' },
             ].map((l) => (
               <Link key={l.name} href={l.href}
                 className="text-[11px] text-white/25 hover:text-white/60 transition-colors font-body">

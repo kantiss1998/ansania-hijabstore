@@ -77,7 +77,7 @@ export default function BrandsPage() {
                 <div className="space-y-4">
                   {/* Logo Container */}
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden border border-black/[0.04] group-hover:border-primary-100 transition-colors">
-                    {brand.logo_url ? (
+                    {brand.logo_url && typeof brand.logo_url === 'string' && brand.logo_url.trim() !== '' ? (
                       <Image src={brand.logo_url} alt={brand.name} width={64} height={64} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
                     ) : (
                       <span className="font-display font-black text-xl text-gray-400 uppercase">

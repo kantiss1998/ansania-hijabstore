@@ -17,9 +17,9 @@ export interface User {
   sizePreference?: string;
   loyaltyPoints?: number;
   loyaltyTier?: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
-  voucherCount?: number;
+  vouchersCount?: number;
   wishlistCount?: number;
-  orderCount?: number;
+  ordersCount?: number;
 }
 
 export interface Address {

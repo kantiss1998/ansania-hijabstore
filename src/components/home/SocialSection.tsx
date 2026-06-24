@@ -1,6 +1,9 @@
 'use client';
 
 import { MessageCircle, ExternalLink } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getPublicSettings } from '@/services/api/cms';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -18,50 +21,73 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
-const SOCIALS = [
-  {
-    icon: InstagramIcon,
-    label: 'Instagram',
-    handle: '@ansania.official',
-    sub: '12K Followers',
-    href: '#',
-    bg: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 50%, #a855f7 100%)',
-  },
-  {
-    icon: TikTokIcon,
-    label: 'TikTok',
-    handle: '@ansania',
-    sub: '8.5K Followers',
-    href: '#',
-    bg: '#0A0A0A',
-  },
-  {
-    icon: MessageCircle,
-    label: 'WhatsApp',
-    handle: 'Chat CS Kami',
-    sub: 'Respon < 5 menit',
-    href: 'https://wa.me/6281234567890',
-    bg: '#25D366',
-  },
-];
-
 export function SocialSection() {
+  const { data: settings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: getPublicSettings,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const getSetting = (key: string, fallback: string) => {
+    return settings?.find(s => s.key === key || s.setting_key === key)?.value || fallback;
+  };
+
+  const instagramUrl = getSetting('social_instagram', '#');
+  const tiktokUrl = getSetting('social_tiktok', '#');
+  const rawWhatsapp = getSetting('social_whatsapp', '6281234567890');
+  
+  let cleanWa = rawWhatsapp.replace(/\D/g, '');
+  if (cleanWa.startsWith('0')) {
+    cleanWa = '62' + cleanWa.slice(1);
+  }
+  const whatsappUrl = `https://wa.me/${cleanWa || '6281234567890'}`;
+
+  const { locale } = useTranslation();
+
+  const socials = [
+    {
+      icon: InstagramIcon,
+      label: 'Instagram',
+      handle: '@ansania.official',
+      href: instagramUrl,
+      bg: 'linear-gradient(135deg, #f43f5e 0%, #ec4899 50%, #a855f7 100%)',
+    },
+    {
+      icon: TikTokIcon,
+      label: 'TikTok',
+      handle: '@ansania',
+      href: tiktokUrl,
+      bg: '#0A0A0A',
+    },
+    {
+      icon: MessageCircle,
+      label: 'WhatsApp',
+      handle: locale === 'id' ? 'Chat CS Kami' : 'Chat Our CS',
+      href: whatsappUrl,
+      bg: '#25D366',
+    },
+  ];
+
   return (
     <section className="py-10 sm:py-14 bg-gradient-to-b from-white to-primary-50/30 border-b border-primary-100/50">
       <div className="container-main">
         {/* Header */}
         <div className="section-header mb-6">
           <div>
-            <p className="section-label mb-1.5">Komunitas</p>
+            <p className="section-label mb-1.5">{locale === 'id' ? 'Komunitas' : 'Community'}</p>
             <h2 className="section-title">
-              Gabung <span className="text-gradient-brand">Komunitas Kami</span>
+              {locale === 'id' ? (
+                <>Gabung <span className="text-gradient-brand">Komunitas Kami</span></>
+              ) : (
+                <>Join <span className="text-gradient-brand">Our Community</span></>
+              )}
             </h2>
           </div>
         </div>
 
         {/* Cards Row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {SOCIALS.map(({ icon: Icon, label, handle, sub, href, bg }) => (
+          {socials.map(({ icon: Icon, label, handle, href, bg }) => (
             <a
               key={label}
               href={href}
@@ -82,7 +108,6 @@ export function SocialSection() {
                   {label}
                 </p>
                 <p className="text-xs text-gray-500 font-body truncate">{handle}</p>
-                <p className="text-[10px] text-gray-400 font-body mt-0.5">{sub}</p>
               </div>
               {/* Arrow */}
               <ExternalLink className="h-3.5 w-3.5 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" />

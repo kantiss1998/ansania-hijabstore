@@ -77,7 +77,8 @@ export default function AdminFlashSalePage() {
   const [isActive, setIsActive] = useState(true);
 
   // Items Management States
-  const [activeFSForItems, setActiveFSForItems] = useState<AdminFlashSale | null>(null);
+  const [activeFSForItemsId, setActiveFSForItemsId] = useState<number | null>(null);
+  const activeFSForItems = flashSales.find(fs => fs.id === activeFSForItemsId) || null;
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isSavingItem, setIsSavingItem] = useState(false);
 
@@ -96,19 +97,12 @@ export default function AdminFlashSalePage() {
     try {
       const data = await getAdminFlashSales();
       setFlashSales(data || []);
-      // If we are managing items for a flash sale, update it from fresh data
-      if (activeFSForItems) {
-        const updated = data.find((fs: AdminFlashSale) => fs.id === activeFSForItems.id);
-        if (updated) {
-          setActiveFSForItems(updated);
-        }
-      }
     } catch {
       toast.error('Gagal memuat daftar flash sale');
     } finally {
       setIsLoading(false);
     }
-  }, [activeFSForItems]);
+  }, []);
 
   useEffect(() => {
     fetchFlashSales();
@@ -202,8 +196,8 @@ export default function AdminFlashSalePage() {
     try {
       await deleteFlashSale(id);
       toast.success('Event Flash Sale berhasil dihapus');
-      if (activeFSForItems?.id === id) {
-        setActiveFSForItems(null);
+      if (activeFSForItemsId === id) {
+        setActiveFSForItemsId(null);
       }
       fetchFlashSales();
     } catch {
@@ -357,7 +351,7 @@ export default function AdminFlashSalePage() {
                           className={`hover:bg-gray-50/50 transition-colors cursor-pointer ${
                             isSelected ? 'bg-primary-50/30' : ''
                           }`}
-                          onClick={() => setActiveFSForItems(fs)}
+                          onClick={() => setActiveFSForItemsId(fs.id)}
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -394,7 +388,7 @@ export default function AdminFlashSalePage() {
                                 <Trash2 className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() => setActiveFSForItems(fs)}
+                                onClick={() => setActiveFSForItemsId(fs.id)}
                                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                                 title="Kelola Item"
                               >
@@ -429,7 +423,7 @@ export default function AdminFlashSalePage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setActiveFSForItems(null)}
+                  onClick={() => setActiveFSForItemsId(null)}
                   className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400"
                 >
                   <X className="h-5 w-5" />

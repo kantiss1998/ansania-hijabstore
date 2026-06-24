@@ -1,5 +1,6 @@
 import { api, BACKEND_URL } from '@/lib/api';
 import type { ProductDetail, ProductFilter, ProductListItem } from '@/types/product.types';
+import { extractVariantColor } from '@/lib/utils';
 
 interface BackendProductImage {
   id: number;
@@ -7,6 +8,7 @@ interface BackendProductImage {
   alt_text?: string;
   is_primary: number | boolean;
   sort_order: number;
+  variant_id?: number | null;
 }
 
 interface BackendProductVariantAttr {
@@ -17,6 +19,7 @@ interface BackendProductVariantAttr {
 interface BackendProductVariant {
   id: number;
   sku: string;
+  name?: string;
   price: string | number;
   stock: number;
   attrs?: BackendProductVariantAttr[];
@@ -45,6 +48,7 @@ interface BackendProduct {
   images?: BackendProductImage[];
   variants?: BackendProductVariant[];
   rating_summary?: { rating_avg: number; total_reviews: number };
+  specifications?: any;
 }
 
 export const getProducts = async (params?: ProductFilter): Promise<{ data: ProductListItem[], meta: { total: number, lastPage: number } }> => {
@@ -70,7 +74,8 @@ export const getProducts = async (params?: ProductFilter): Promise<{ data: Produ
     ratingAverage: p.ratingAverage || 5,
     totalReviews: p.totalReviews || 0,
     isFeatured: p.is_featured === 1 || p.is_featured === true,
-    isNew: p.isNew || false
+    isNew: p.isNew || false,
+    comparePrice: p.base_compare_price || p.compare_price ? Number(p.base_compare_price || p.compare_price) : undefined
   }));
 
   return {
@@ -101,25 +106,51 @@ export const getProductBySlug = async (slug: string): Promise<ProductDetail> => 
     totalReviews: p.rating_summary?.total_reviews || p.totalReviews || 0,
     isFeatured: p.is_featured === 1 || p.is_featured === true,
     isNew: p.isNew || false,
+    comparePrice: p.base_compare_price || p.compare_price ? Number(p.base_compare_price || p.compare_price) : undefined,
     description: p.description || '',
+    specifications: (() => {
+      if (!p.specifications) return undefined;
+      if (typeof p.specifications === 'string') {
+        try {
+          return JSON.parse(p.specifications);
+        } catch {
+          return undefined;
+        }
+      }
+      return p.specifications as Record<string, string>;
+    })(),
     images: (p.images || []).map((img) => ({
       id: img.id,
       url: img.url.startsWith('http') ? img.url : `${BACKEND_URL}${img.url}`,
       alt: img.alt_text || p.name,
       isPrimary: img.is_primary === 1 || img.is_primary === true,
-      sortOrder: img.sort_order || 0
+      sortOrder: img.sort_order || 0,
+      variantId: img.variant_id || null,
+      variant_id: img.variant_id || null
     })),
-    variants: (p.variants || []).map((v) => ({
+    variants: (p.variants || []).map((v: any) => ({
       id: v.id,
       sku: v.sku,
       price: Number(v.price),
+      comparePrice: v.compare_price ? Number(v.compare_price) : undefined,
       stock: v.stock,
       stockStatus: v.stock > 0 ? ('in_stock' as const) : ('out_of_stock' as const),
-      options: (v.attrs || []).map((a, idx) => ({
-        id: idx + 1,
-        name: a.attr_name,
-        value: a.attr_value
-      }))
+      options: (() => {
+        if (v.attrs && v.attrs.length > 0) {
+          return v.attrs.map((a: any, idx: number) => ({
+            id: idx + 1,
+            name: a.attr_name,
+            value: a.attr_value
+          }));
+        }
+        
+        const colorName = extractVariantColor(v.name || '', v.sku);
+        return [{
+          id: 1,
+          name: 'Warna',
+          value: colorName
+        }];
+      })()
     }))
   };
 };
@@ -145,16 +176,24 @@ export const getFeaturedProducts = async (): Promise<ProductListItem[]> => {
     ratingAverage: p.ratingAverage || 5,
     totalReviews: p.totalReviews || 0,
     isFeatured: p.is_featured === 1 || p.is_featured === true,
-    isNew: p.isNew || false
+    isNew: p.isNew || false,
+    comparePrice: p.base_compare_price || p.compare_price ? Number(p.base_compare_price || p.compare_price) : undefined
   }));
 };
 
 export const getBrands = async () => {
   const { data } = await api.get('/brands');
-  return data.data || data;
+  const list = data.data || data || [];
+  return list.filter((b: any) => b.name?.toLowerCase() === 'ansania');
 };
 
 export const getBrandBySlug = async (slug: string) => {
   const { data } = await api.get(`/brands/${slug}`);
   return data.data || data;
+};
+
+export const getSearchSuggestions = async (q: string): Promise<string[]> => {
+  if (!q.trim()) return [];
+  const { data } = await api.get('/products/search-suggest', { params: { q } });
+  return data.data || [];
 };

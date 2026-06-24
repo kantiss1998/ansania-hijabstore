@@ -5,12 +5,14 @@ import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { type Banner } from '@/types/product.types';
 import Link from 'next/link';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface Props {
   banners: Banner[];
 }
 
 export function HeroSection({ banners }: Props) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -101,13 +103,13 @@ export function HeroSection({ banners }: Props) {
                   href={banner.linkUrl || '/produk'}
                   className="btn-pill-brand h-11 sm:h-12 px-7 sm:px-9 text-sm"
                 >
-                  {banner.linkText || 'Belanja Sekarang'}
+                  {banner.linkText || t('shopNow')}
                 </Link>
                 <Link
                   href="/produk"
                   className="inline-flex h-11 sm:h-12 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-7 font-display text-sm font-bold text-white backdrop-blur-sm hover:bg-white/20 transition-all"
                 >
-                  Lihat Katalog
+                  {t('viewCatalog')}
                 </Link>
               </motion.div>
             </div>

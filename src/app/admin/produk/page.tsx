@@ -217,22 +217,83 @@ export default function AdminProductsPage() {
         
         {/* Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 flex justify-between items-center text-xs">
+          <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
             <span className="text-gray-500 font-semibold">
               Halaman {page} dari {totalPages} (Total {total} Produk)
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="btn btn-outline py-1 px-3 font-bold rounded-lg text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-outline py-1 px-2.5 font-bold rounded-lg text-gray-650 border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-[10px] sm:text-xs"
               >
                 Sebelumnya
               </button>
+              
+              {(() => {
+                const pages = [];
+                const maxButtons = 5;
+                let startPage = Math.max(1, page - 2);
+                let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+                
+                if (endPage - startPage + 1 < maxButtons) {
+                  startPage = Math.max(1, endPage - maxButtons + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+
+                return (
+                  <div className="flex items-center gap-1">
+                    {startPage > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setPage(1)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border border-gray-200 text-gray-600 hover:bg-gray-50"
+                        >
+                          1
+                        </button>
+                        {startPage > 2 && <span className="text-gray-400 px-0.5 font-bold">...</span>}
+                      </>
+                    )}
+                    
+                    {pages.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPage(p)}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                          page === p
+                            ? 'bg-[#0A0A0A] text-white border border-[#0A0A0A]'
+                            : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+
+                    {endPage < totalPages && (
+                      <>
+                        {endPage < totalPages - 1 && <span className="text-gray-400 px-0.5 font-bold">...</span>}
+                        <button
+                          type="button"
+                          onClick={() => setPage(totalPages)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border border-gray-200 text-gray-600 hover:bg-gray-50"
+                        >
+                          {totalPages}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="btn btn-outline py-1 px-3 font-bold rounded-lg text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-outline py-1 px-2.5 font-bold rounded-lg text-gray-650 border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-[10px] sm:text-xs"
               >
                 Selanjutnya
               </button>
