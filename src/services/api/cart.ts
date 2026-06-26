@@ -1,6 +1,8 @@
 import { api, BACKEND_URL } from '@/lib/api';
 
 interface CartItemInput {
+  productId?: number;
+  product_id?: number;
   variantId?: number;
   variant_id?: number;
   quantity?: number;
@@ -26,9 +28,11 @@ interface BackendCartItem {
 
 export const addToCart = async (data: CartItemInput, sessionId?: string) => {
   const payload: Record<string, unknown> = {
+    product_id: data.productId || data.product_id,
     variant_id: data.variantId || data.variant_id,
     quantity: data.quantity || data.qty || 1
   };
+
   if (sessionId) {
     payload.session_id = sessionId;
   }

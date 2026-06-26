@@ -18,17 +18,24 @@ export default function WishlistPage() {
 
   useEffect(() => {
     const fetchWishlist = async () => {
+      if (productIds.size === 0) {
+        setWishlist([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const { data } = await getProducts({ limit: 100 });
-        const items = data.filter((p) => productIds.has(p.id));
-        setWishlist(items);
+        const idString = Array.from(productIds).join(',');
+        const { data } = await getProducts({ ids: idString });
+        setWishlist(data || []);
       } catch {
         toast.error('Gagal memuat wishlist');
       } finally {
         setIsLoading(false);
       }
     };
+
     
     fetchWishlist();
   }, [productIds]);

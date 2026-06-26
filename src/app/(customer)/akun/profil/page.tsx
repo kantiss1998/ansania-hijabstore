@@ -188,7 +188,7 @@ export default function ProfilePage() {
             </div>
             <div className="rounded-full bg-accent-lime/90 px-3 py-1 flex items-center gap-1.5">
               <Award className="h-3.5 w-3.5 text-dark" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider text-dark">{user?.loyaltyTier || 'Gold'}</span>
+              <span className="text-[9px] font-display font-black uppercase tracking-wider text-dark">{user?.loyaltyTier ?? 'Member'}</span>
             </div>
           </div>
 
@@ -198,7 +198,7 @@ export default function ProfilePage() {
               <div>
                 <p className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">Total Poin Belanja</p>
                 <p className="text-2xl font-display font-black tracking-wider text-white mt-0.5">
-                  {user?.loyaltyPoints || '1,250'}{' '}
+                  {user?.loyaltyPoints ?? 0}{' '}
                   <span className="text-xs font-bold font-body text-[#F52D6E]">PTS</span>
                 </p>
               </div>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
           className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none group"
         >
           <ShoppingBag className="h-5 w-5 text-gray-400 group-hover:text-[#0A0A0A] transition-colors mb-2" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.orderCount || '12'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.orderCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Total Pesanan</span>
         </Link>
         <Link
@@ -229,12 +229,12 @@ export default function ProfilePage() {
           className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none group"
         >
           <Heart className="h-5 w-5 text-gray-400 group-hover:text-[#F52D6E] transition-colors mb-2" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.wishlistCount || '3'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.wishlistCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Wishlist</span>
         </Link>
         <div className="bento-card p-4 flex flex-col items-center justify-center text-center !shadow-none">
           <Ticket className="h-5 w-5 text-[#F52D6E] mb-2 animate-pulse" />
-          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.voucherCount || '4'}</span>
+          <span className="text-lg font-display font-black text-[#0A0A0A]">{user?.voucherCount ?? 0}</span>
           <span className="text-[9px] font-display font-bold uppercase tracking-wider text-gray-400 mt-0.5">Voucher Aktif</span>
         </div>
       </div>

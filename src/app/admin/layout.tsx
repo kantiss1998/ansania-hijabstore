@@ -21,9 +21,20 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Bug #13 fix: auth guard admin — cek isAuthenticated dan role
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace(`${ROUTES.AUTH.LOGIN}?redirect=/admin`);
+      return;
+    }
+    if (user && user.role !== 'admin') {
+      router.replace(ROUTES.HOME);
+    }
+  }, [isAuthenticated, user, router]);
 
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -33,6 +44,7 @@ export default function AdminLayout({
     logout();
     router.push(ROUTES.HOME);
   };
+
 
   const navGroups = [
     {

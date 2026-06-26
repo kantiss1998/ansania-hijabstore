@@ -52,8 +52,10 @@ export default function AdminPelangganPage() {
     try {
       const data = await getAdminCustomers({ page, limit, search, sort: sortBy });
       const payload = data.data || data;
-      setCustomers(payload.items || []);
-      setTotal(payload.total || 0);
+      const customerList = Array.isArray(payload) ? payload : (payload.data || payload.items || []);
+      setCustomers(Array.isArray(customerList) ? customerList : []);
+      setTotal(data.meta?.total || payload.total || (customerList.length ?? 0));
+
     } catch (error) {
       console.error('Gagal memuat pelanggan:', error);
       toast.error('Gagal memuat daftar pelanggan');

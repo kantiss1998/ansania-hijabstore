@@ -37,9 +37,13 @@ interface CartState {
 
 interface ApiCartItem {
   id: number;
-  productId: number;
-  variantId: number;
-  qty: number;
+  // Backend returns snake_case; camelCase kept for compat
+  productId?: number;
+  product_id?: number;
+  variantId?: number;
+  variant_id?: number;
+  qty?: number;
+  quantity?: number;
   price: number;
   weight_gram?: number;
   product: {
@@ -87,14 +91,15 @@ export const useCartStore = create<CartState>()(
           if (cartData && cartData.items) {
             const mappedItems = cartData.items.map((apiItem: ApiCartItem) => ({
               id: apiItem.id,
-              productId: apiItem.productId,
-              variantId: apiItem.variantId,
+              // Bug #7 fix: backend sends snake_case, fallback to camelCase for compat
+              productId: apiItem.product_id ?? apiItem.productId ?? 0,
+              variantId: apiItem.variant_id ?? apiItem.variantId ?? 0,
               productName: apiItem.product.name,
               productSlug: apiItem.product.slug,
               variantName: apiItem.variant.sku,
               thumbnailUrl: apiItem.product.thumbnail_url,
               price: apiItem.price,
-              qty: apiItem.qty,
+              qty: apiItem.qty ?? apiItem.quantity ?? 1,
               maxQty: apiItem.variant.stock,
               weight_gram: apiItem.weight_gram,
             }));
@@ -113,8 +118,13 @@ export const useCartStore = create<CartState>()(
         
         try {
           set({ isLoading: true });
-          await addToCart({ variant_id: item.variantId, quantity: item.qty }, sessId || undefined);
+          await addToCart({ 
+            variant_id: item.variantId, 
+            product_id: item.productId || item.id, 
+            quantity: item.qty 
+          }, sessId || undefined);
           await get().syncCart();
+
           toast.success('Produk ditambahkan ke keranjang');
         } catch (error) {
           const err = error as { response?: { data?: { message?: string } } };

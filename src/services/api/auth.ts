@@ -26,6 +26,17 @@ export const forgotPassword = async (email: string) => {
   return res.data;
 };
 
+export const requestPasswordReset = async (email: string) => {
+  const res = await api.post('/auth/forgot-password', { email });
+  return res.data;
+};
+
+export const resendVerificationEmail = async (email?: string) => {
+  const res = await api.post('/auth/resend-verification', { email });
+  return res.data;
+};
+
+
 export const resetPassword = async (data: Record<string, unknown>) => {
   const res = await api.post('/auth/reset-password', data);
   return res.data;

@@ -148,9 +148,11 @@ export interface ProductFilter {
   sort?: 'newest' | 'price_asc' | 'price_desc' | 'popular' | 'best_rating';
   isFeatured?: boolean;
   isNew?: boolean;
+  ids?: string;
   page?: number;
   limit?: number;
 }
+
 
 // ─── Admin specific and general entities ───────────────────────────────────
 
