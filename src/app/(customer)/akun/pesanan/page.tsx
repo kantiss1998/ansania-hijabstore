@@ -108,7 +108,7 @@ export default function OrdersPage() {
                 {order.order_items && order.order_items.length > 0 && (
                   <div className="flex gap-4">
                     <Image 
-                      src={order.order_items[0].product.thumbnail_url} 
+                      src={order.order_items[0].product.thumbnail_url && typeof order.order_items[0].product.thumbnail_url === 'string' && order.order_items[0].product.thumbnail_url.trim() !== '' ? order.order_items[0].product.thumbnail_url : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'} 
                       alt={order.order_items[0].product.name} 
                       width={80}
                       height={80}

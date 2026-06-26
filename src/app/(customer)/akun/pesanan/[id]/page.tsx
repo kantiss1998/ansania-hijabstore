@@ -385,7 +385,7 @@ export default function OrderDetailsPage() {
                 return (
                   <div key={item.id} className="flex gap-4">
                     <div className="w-16 h-16 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-black/[0.05]">
-                      <Image src={item.product?.thumbnail_url || item.product?.thumbnail_url || '/placeholder.png'} alt={item.product?.name || 'Produk'} width={64} height={64} className="w-full h-full object-cover" unoptimized />
+                      <Image src={item.product?.thumbnail_url && typeof item.product?.thumbnail_url === 'string' && item.product?.thumbnail_url.trim() !== '' ? item.product?.thumbnail_url : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'} alt={item.product?.name || 'Produk'} width={64} height={64} className="w-full h-full object-cover" unoptimized />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
@@ -577,7 +577,7 @@ export default function OrderDetailsPage() {
             </h3>
             
             <div className="flex gap-4 mb-5 pb-5 border-b border-black/[0.04]">
-              <Image src={reviewingItem.product?.thumbnail_url || reviewingItem.image || '/placeholder.png'} alt={reviewingItem.product?.name || reviewingItem.name || 'Produk'} width={56} height={56} className="w-14 h-14 object-cover rounded-xl border border-black/[0.05]" unoptimized />
+              <Image src={(reviewingItem.product?.thumbnail_url && typeof reviewingItem.product?.thumbnail_url === 'string' && reviewingItem.product?.thumbnail_url.trim() !== '') ? reviewingItem.product?.thumbnail_url : ((reviewingItem.image && typeof reviewingItem.image === 'string' && reviewingItem.image.trim() !== '') ? reviewingItem.image : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop')} alt={reviewingItem.product?.name || reviewingItem.name || 'Produk'} width={56} height={56} className="w-14 h-14 object-cover rounded-xl border border-black/[0.05]" unoptimized />
               <div>
                 <h4 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{reviewingItem.product?.name || reviewingItem.name || 'Produk'}</h4>
                 <p className="text-[9px] text-gray-400 font-body mt-0.5">Varian: {reviewingItem.variant?.sku || '-'}</p>

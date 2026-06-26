@@ -104,7 +104,7 @@ export default function AdminKategoriPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('slug', slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-    if (parentId) formData.append('parent_id', parentId);
+    formData.append('parent_id', parentId || '');
     formData.append('description', description);
     formData.append('sort_order', sortOrder);
     formData.append('is_active', isActive ? '1' : '0');

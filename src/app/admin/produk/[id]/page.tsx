@@ -14,6 +14,7 @@ import {
   getProductStockMutations,
   addProductImage,
   deleteProductImage,
+  updateProductImage,
   getAdminCategories,
   getAdminBrands
 } from '@/services/api/admin';
@@ -41,6 +42,9 @@ export default function AdminEditProdukPage() {
   const [weightGram, setWeightGram] = useState(200);
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
+
+  // Specifications management
+  const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
   // Variants management
   const [originalVariants, setOriginalVariants] = useState<Variant[]>([]);
@@ -169,6 +173,25 @@ export default function AdminEditProdukPage() {
           setIsFeatured(productData.is_featured === 1);
           setExistingImages(productData.images || []);
 
+          // Format specifications
+          if (productData.specifications) {
+            let specsObj = productData.specifications;
+            if (typeof specsObj === 'string') {
+              try {
+                specsObj = JSON.parse(specsObj);
+              } catch {
+                specsObj = {};
+              }
+            }
+            const specsArray = Object.entries(specsObj).map(([key, val]) => ({
+              key,
+              value: String(val)
+            }));
+            setSpecifications(specsArray);
+          } else {
+            setSpecifications([]);
+          }
+
           // Format original variants
           const loadedVariants = (productData.variants || []).map((v: Variant) => ({
             id: v.id,
@@ -272,6 +295,19 @@ export default function AdminEditProdukPage() {
     }
   };
 
+  const handleImageVariantChange = async (imageId: number, variantIdStr: string) => {
+    const variantId = variantIdStr ? Number(variantIdStr) : null;
+    try {
+      await updateProductImage(imageId, { variant_id: variantId });
+      setExistingImages(prev =>
+        prev.map(img => img.id === imageId ? { ...img, variant_id: variantId } : img)
+      );
+      toast.success('Asosiasi varian gambar diperbarui');
+    } catch {
+      toast.error('Gagal memperbarui asosiasi varian');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !categoryId) {
@@ -281,6 +317,14 @@ export default function AdminEditProdukPage() {
 
     setIsSubmitting(true);
     try {
+      // Convert specifications array to JSON object
+      const specsObj = specifications.reduce((acc, curr) => {
+        if (curr.key.trim()) {
+          acc[curr.key.trim()] = curr.value.trim();
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
       // 1. Update general product info
       const productPayload = {
         name,
@@ -291,7 +335,8 @@ export default function AdminEditProdukPage() {
         compare_price: comparePrice || null,
         weight_gram: weightGram,
         is_active: isActive,
-        is_featured: isFeatured
+        is_featured: isFeatured,
+        specifications: Object.keys(specsObj).length > 0 ? specsObj : null
       };
 
       await updateProduct(productId, productPayload);
@@ -317,15 +362,15 @@ export default function AdminEditProdukPage() {
               orig.sku !== variant.sku ||
               orig.name !== variant.name ||
               orig.price !== variant.price ||
-              orig.weight_gram !== variant.weight_gram ||
+              orig.weight_gram !== weightGram ||
               orig.is_active !== variant.is_active;
-
+ 
             if (detailsChanged) {
               await updateProductVariant(variant.id!, {
                 sku: variant.sku,
                 name: variant.name,
                 price: variant.price,
-                weight_gram: variant.weight_gram,
+                weight_gram: weightGram,
                 is_active: !!variant.is_active
               });
             }
@@ -485,6 +530,60 @@ export default function AdminEditProdukPage() {
             </div>
           </div>
 
+          {/* Specifications Panel */}
+          <div className="card border border-gray-100 p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+              <h3 className="text-base font-bold text-gray-900">Spesifikasi Produk</h3>
+              <button
+                type="button"
+                onClick={() => setSpecifications(prev => [...prev, { key: '', value: '' }])}
+                className="btn btn-outline py-1 px-3 text-xs font-bold flex items-center gap-1.5 rounded-lg"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah Baris
+              </button>
+            </div>
+            
+            {specifications.length === 0 ? (
+              <p className="text-xs text-gray-400 py-2">Belum ada spesifikasi ditambahkan.</p>
+            ) : (
+              <div className="space-y-3">
+                {specifications.map((spec, idx) => (
+                  <div key={idx} className="flex gap-3 items-center">
+                    <input
+                      type="text"
+                      placeholder="Nama Atribut (cth: Bahan)"
+                      value={spec.key}
+                      onChange={(e) => {
+                        const updated = [...specifications];
+                        updated[idx].key = e.target.value;
+                        setSpecifications(updated);
+                      }}
+                      className="input py-1.5 px-3 text-xs flex-1"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nilai Atribut (cth: Voal Premium)"
+                      value={spec.value}
+                      onChange={(e) => {
+                        const updated = [...specifications];
+                        updated[idx].value = e.target.value;
+                        setSpecifications(updated);
+                      }}
+                      className="input py-1.5 px-3 text-xs flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSpecifications(prev => prev.filter((_, i) => i !== idx))}
+                      className="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Variants Management */}
           <div className="card border border-gray-100 p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-gray-50 pb-2">
@@ -560,16 +659,6 @@ export default function AdminEditProdukPage() {
                   </div>
 
                   <div className="flex gap-4 items-center pt-2">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400">Berat (Gram)</label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={variant.weight_gram}
-                        onChange={(e) => handleVariantChange(index, 'weight_gram', parseInt(e.target.value) || 0)}
-                        className="input py-1 px-2 text-xs w-28"
-                      />
-                    </div>
                     <div className="flex items-center gap-2 self-end pb-1.5">
                       <input
                         type="checkbox"
@@ -731,24 +820,86 @@ export default function AdminEditProdukPage() {
 
                     {/* Pagination */}
                     {mutationsTotal > 10 && (
-                      <div className="flex justify-between items-center pt-2 border-t border-gray-50">
-                        <span className="text-[10px] text-gray-400">
-                          Total {mutationsTotal} riwayat
+                      <div className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-2 border-t border-gray-50 text-[10px]">
+                        <span className="text-gray-450 font-semibold">
+                          Halaman {mutationsPage} dari {Math.ceil(mutationsTotal / 10)} (Total {mutationsTotal} riwayat)
                         </span>
-                        <div className="flex gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1">
                           <button
                             type="button"
                             disabled={mutationsPage === 1}
-                            onClick={() => setMutationsPage(prev => prev - 1)}
-                            className="btn btn-outline py-1 px-2.5 text-[10px] rounded-lg disabled:opacity-50 cursor-pointer"
+                            onClick={() => setMutationsPage((p) => p - 1)}
+                            className="btn btn-outline py-0.5 px-2 rounded-lg disabled:opacity-50 cursor-pointer text-[9px]"
                           >
                             Sebelumnya
                           </button>
+                          
+                          {(() => {
+                            const pages = [];
+                            const tPages = Math.ceil(mutationsTotal / 10);
+                            const maxButtons = 5;
+                            let startPage = Math.max(1, mutationsPage - 2);
+                            let endPage = Math.min(tPages, startPage + maxButtons - 1);
+                            
+                            if (endPage - startPage + 1 < maxButtons) {
+                              startPage = Math.max(1, endPage - maxButtons + 1);
+                            }
+
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(i);
+                            }
+
+                            return (
+                              <div className="flex items-center gap-0.5">
+                                {startPage > 1 && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => setMutationsPage(1)}
+                                      className="w-5.5 h-5.5 flex items-center justify-center rounded border border-gray-200 text-gray-650 hover:bg-gray-50 font-bold"
+                                    >
+                                      1
+                                    </button>
+                                    {startPage > 2 && <span className="text-gray-400 px-0.5">...</span>}
+                                  </>
+                                )}
+                                
+                                {pages.map((p) => (
+                                  <button
+                                    key={p}
+                                    type="button"
+                                    onClick={() => setMutationsPage(p)}
+                                    className={`w-5.5 h-5.5 flex items-center justify-center rounded font-bold transition-all ${
+                                      mutationsPage === p
+                                        ? 'bg-[#0A0A0A] text-white border border-[#0A0A0A]'
+                                        : 'border border-gray-200 text-gray-650 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                ))}
+
+                                {endPage < tPages && (
+                                  <>
+                                    {endPage < tPages - 1 && <span className="text-gray-400 px-0.5">...</span>}
+                                    <button
+                                      type="button"
+                                      onClick={() => setMutationsPage(tPages)}
+                                      className="w-5.5 h-5.5 flex items-center justify-center rounded border border-gray-200 text-gray-650 hover:bg-gray-50 font-bold"
+                                    >
+                                      {tPages}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
+
                           <button
                             type="button"
                             disabled={mutationsPage * 10 >= mutationsTotal}
-                            onClick={() => setMutationsPage(prev => prev + 1)}
-                            className="btn btn-outline py-1 px-2.5 text-[10px] rounded-lg disabled:opacity-50 cursor-pointer"
+                            onClick={() => setMutationsPage((p) => p + 1)}
+                            className="btn btn-outline py-0.5 px-2 rounded-lg disabled:opacity-50 cursor-pointer text-[9px]"
                           >
                             Berikutnya
                           </button>
@@ -823,24 +974,39 @@ export default function AdminEditProdukPage() {
             </div>
 
             {existingImages.length > 0 && (
-              <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="grid grid-cols-2 gap-3 mt-4">
                 {existingImages.map((image) => (
-                  <div key={image.id} className="relative group rounded-lg overflow-hidden border border-gray-100 aspect-square">
-                    <Image src={image.url.startsWith('http') ? image.url : `${BACKEND_URL}${image.url}`} alt="Product" width={150} height={150} className="w-full h-full object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteImage(image.id)}
-                        className="p-1.5 bg-white text-red-500 rounded-lg hover:scale-105 transition-transform"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  <div key={image.id} className="flex flex-col border border-gray-150 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <div className="relative aspect-square w-full">
+                      <Image src={image.url && typeof image.url === 'string' && image.url.trim() !== '' ? (image.url.startsWith('http') ? image.url : `${BACKEND_URL}${image.url}`) : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'} alt="Product" width={150} height={150} className="w-full h-full object-cover" unoptimized />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteImage(image.id)}
+                          className="p-1.5 bg-white text-red-500 rounded-lg hover:scale-105 transition-transform"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {image.is_primary === 1 && (
+                        <span className="absolute bottom-1.5 left-1.5 text-[9px] bg-primary-500 text-white font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          <Check className="w-2.5 h-2.5" /> Utama
+                        </span>
+                      )}
                     </div>
-                    {image.is_primary === 1 && (
-                      <span className="absolute bottom-1 left-1 text-[9px] bg-primary-500 text-white font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                        <Check className="w-2.5 h-2.5" /> Utama
-                      </span>
-                    )}
+                    {/* Variant Select */}
+                    <div className="p-2 border-t border-gray-100 bg-gray-50/50">
+                      <select
+                        value={image.variant_id || ''}
+                        onChange={(e) => handleImageVariantChange(image.id, e.target.value)}
+                        className="w-full text-[10px] font-bold py-1 px-1.5 rounded border border-gray-200 bg-white font-body focus:outline-none"
+                      >
+                        <option value="">Semua Varian</option>
+                        {variants.filter(v => v.id).map(v => (
+                          <option key={v.id} value={v.id}>{v.sku || v.name}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 ))}
               </div>

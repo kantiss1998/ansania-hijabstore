@@ -49,8 +49,8 @@ export const getActiveFlashSale = async (): Promise<FlashSale | null> => {
         thumbnailUrl: item.primary_image ? (item.primary_image.startsWith('http') ? item.primary_image : `${BACKEND_URL}${item.primary_image}`) : '',
         category: { id: 0, name: 'Uncategorized', slug: 'uncategorized' },
         stockStatus: item.quota > item.sold_count ? 'in_stock' : 'out_of_stock',
-        ratingAverage: 4.8,
-        totalReviews: 50,
+        ratingAverage: 5,
+        totalReviews: 0,
         isFeatured: false,
         isNew: false
       }

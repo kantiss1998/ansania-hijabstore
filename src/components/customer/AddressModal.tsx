@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, MapPin } from 'lucide-react';
 import type { Address } from '@/types/user.types';
+import { getProvinces, getCities, getDistricts } from '@/services/api/shipping';
 
 interface AddressFormData {
+  label: string;
   recipient_name: string;
   phone: string;
-  province: string;
-  city: string;
+  province_id: string;
+  province_name: string;
+  city_id: string;
+  city_name: string;
   district: string;
   postal_code: string;
   full_address: string;
@@ -25,11 +29,19 @@ interface AddressModalProps {
 
 export function AddressModal({ isOpen, onClose, onSubmit, initialData }: AddressModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<string[]>([]);
+
   const [formData, setFormData] = useState<AddressFormData>({
+    label: 'Utama',
     recipient_name: '',
     phone: '',
-    province: '',
-    city: '',
+    province_id: '',
+    province_name: '',
+    city_id: '',
+    city_name: '',
     district: '',
     postal_code: '',
     full_address: '',
@@ -37,13 +49,62 @@ export function AddressModal({ isOpen, onClose, onSubmit, initialData }: Address
   });
 
   useEffect(() => {
+    const loadProvinces = async () => {
+      try {
+        const data = await getProvinces();
+        setProvinces(data || []);
+      } catch (err) {
+        console.error('Failed to load provinces', err);
+      }
+    };
+    if (isOpen) {
+      loadProvinces();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const loadCities = async () => {
+      if (!formData.province_id) {
+        setCities([]);
+        return;
+      }
+      try {
+        const data = await getCities(formData.province_id);
+        setCities(data || []);
+      } catch (err) {
+        console.error('Failed to load cities', err);
+      }
+    };
+    loadCities();
+  }, [formData.province_id]);
+
+  useEffect(() => {
+    const loadDistricts = async () => {
+      if (!formData.city_id) {
+        setDistricts([]);
+        return;
+      }
+      try {
+        const data = await getDistricts(formData.city_id);
+        setDistricts(data || []);
+      } catch (err) {
+        console.error('Failed to load districts', err);
+      }
+    };
+    loadDistricts();
+  }, [formData.city_id]);
+
+  useEffect(() => {
     if (isOpen) {
       if (initialData) {
         setFormData({
+          label: initialData.label || 'Utama',
           recipient_name: initialData.recipientName || '',
           phone: initialData.phone || '',
-          province: initialData.province || '',
-          city: initialData.city || '',
+          province_id: initialData.provinceId || '',
+          province_name: initialData.province || '',
+          city_id: initialData.cityId || '',
+          city_name: initialData.city || '',
           district: initialData.addressLine2 || '',
           postal_code: initialData.postalCode || '',
           full_address: initialData.addressLine1 || '',
@@ -51,10 +112,13 @@ export function AddressModal({ isOpen, onClose, onSubmit, initialData }: Address
         });
       } else {
         setFormData({
+          label: 'Utama',
           recipient_name: '',
           phone: '',
-          province: '',
-          city: '',
+          province_id: '',
+          province_name: '',
+          city_id: '',
+          city_name: '',
           district: '',
           postal_code: '',
           full_address: '',
@@ -65,6 +129,30 @@ export function AddressModal({ isOpen, onClose, onSubmit, initialData }: Address
   }, [isOpen, initialData]);
 
   if (!isOpen) return null;
+
+  const handleProvinceChange = (provId: string) => {
+    const prov = provinces.find(p => String(p.province_id) === provId);
+    setFormData(prev => ({
+      ...prev,
+      province_id: provId,
+      province_name: prov ? prov.province : '',
+      city_id: '',
+      city_name: '',
+      district: '',
+      postal_code: ''
+    }));
+  };
+
+  const handleCityChange = (cityId: string) => {
+    const city = cities.find(c => String(c.city_id) === cityId);
+    setFormData(prev => ({
+      ...prev,
+      city_id: cityId,
+      city_name: city ? `${city.type} ${city.city_name}` : '',
+      district: '',
+      postal_code: city ? city.postal_code : ''
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,52 +223,84 @@ export function AddressModal({ isOpen, onClose, onSubmit, initialData }: Address
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Provinsi</label>
-                <input
-                  type="text"
+                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Negara</label>
+                <select
                   required
-                  value={formData.province}
-                  onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all placeholder:text-gray-300"
-                  placeholder="Provinsi"
-                />
+                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all"
+                  defaultValue="Indonesia"
+                >
+                  <option value="Indonesia">Indonesia</option>
+                </select>
               </div>
               <div>
-                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kota / Kabupaten</label>
-                <input
-                  type="text"
+                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Provinsi</label>
+                <select
                   required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all placeholder:text-gray-300"
-                  placeholder="Kota"
-                />
+                  value={formData.province_id}
+                  onChange={(e) => handleProvinceChange(e.target.value)}
+                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all"
+                >
+                  <option value="">Pilih Provinsi</option>
+                  {provinces.map((prov) => (
+                    <option key={prov.province_id} value={prov.province_id}>
+                      {prov.province}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kecamatan</label>
-                <input
-                  type="text"
+                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kota / Kabupaten</label>
+                <select
                   required
-                  value={formData.district}
-                  onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all placeholder:text-gray-300"
-                  placeholder="Kecamatan"
-                />
+                  disabled={!formData.province_id}
+                  value={formData.city_id}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all disabled:opacity-50"
+                >
+                  <option value="">Pilih Kota</option>
+                  {cities.map((city) => (
+                    <option key={city.city_id} value={city.city_id}>
+                      {city.type} {city.city_name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kode Pos</label>
-                <input
-                  type="text"
+                <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kecamatan</label>
+                <select
                   required
-                  value={formData.postal_code}
-                  onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all placeholder:text-gray-300"
-                  placeholder="Kode Pos"
-                />
+                  disabled={!formData.city_id}
+                  value={formData.district}
+                  onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                  className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all disabled:opacity-50"
+                >
+                  <option value="">Pilih Kecamatan</option>
+                  {districts.map((dist) => (
+                    <option key={dist} value={dist}>
+                      {dist}
+                    </option>
+                  ))}
+                </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-display font-bold uppercase tracking-wider text-gray-500 mb-1.5">Kode Pos</label>
+              <select
+                required
+                disabled={!formData.city_id}
+                value={formData.postal_code}
+                onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                className="w-full px-4 py-2.5 text-xs font-body rounded-xl border border-black/10 focus:border-[#F52D6E] focus:outline-none transition-all disabled:opacity-50"
+              >
+                <option value="">Pilih Kode Pos</option>
+                {formData.postal_code && (
+                  <option value={formData.postal_code}>{formData.postal_code}</option>
+                )}
+              </select>
             </div>
 
             <div>

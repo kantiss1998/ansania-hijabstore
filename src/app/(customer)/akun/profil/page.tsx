@@ -205,12 +205,8 @@ export default function ProfilePage() {
               <div className="text-right text-[9px] font-display font-bold uppercase tracking-wider text-gray-400">
                 <span>250 PTS lagi menuju PLATINUM</span>
               </div>
-            </div>
-            {/* Progress bar */}
-            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#F52D6E] to-pink-400 rounded-full" style={{ width: '75%' }} />
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </div>
 

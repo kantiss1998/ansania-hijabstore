@@ -274,7 +274,7 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <Image src={item.thumbnailUrl} alt={item.productName} width={80} height={80} className="w-20 h-20 object-cover rounded-xl border border-[#0A0A0A]/[0.05]" unoptimized />
+                    <Image src={item.thumbnailUrl && typeof item.thumbnailUrl === 'string' && item.thumbnailUrl.trim() !== '' ? item.thumbnailUrl : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'} alt={item.productName} width={80} height={80} className="w-20 h-20 object-cover rounded-xl border border-[#0A0A0A]/[0.05]" unoptimized />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-bold text-xs uppercase tracking-wider text-[#0A0A0A] line-clamp-1">{item.productName}</h3>
                       <p className="text-[10px] text-gray-400 font-body mt-0.5">Varian: {item.variantName}</p>

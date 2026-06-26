@@ -4,6 +4,7 @@ import { CartDrawer } from '@/components/layout/CartDrawer';
 import { SearchOverlay } from '@/components/layout/SearchOverlay';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { WhatsAppBubble } from '@/components/layout/WhatsAppBubble';
 
 export default function CustomerLayout({
   children,
@@ -20,6 +21,7 @@ export default function CustomerLayout({
       </div>
       <CartDrawer />
       <SearchOverlay />
+      <WhatsAppBubble />
     </AuthProvider>
   );
 }

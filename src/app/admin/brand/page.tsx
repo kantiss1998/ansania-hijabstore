@@ -196,7 +196,7 @@ export default function AdminBrandPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-orange-50 border border-orange-100 overflow-hidden flex items-center justify-center">
-                          {brand.logo_url ? (
+                          {brand.logo_url && typeof brand.logo_url === 'string' && brand.logo_url.trim() !== '' ? (
                             <Image
                               src={brand.logo_url.startsWith('http') ? brand.logo_url : `${BACKEND_URL}${brand.logo_url}`}
                               alt={brand.name}
@@ -315,7 +315,7 @@ export default function AdminBrandPage() {
                 <label className="text-xs font-bold text-gray-500 block">Logo Brand</label>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl border border-gray-200 overflow-hidden flex items-center justify-center bg-gray-50 shrink-0">
-                    {logoPreview ? (
+                    {logoPreview && typeof logoPreview === 'string' && logoPreview.trim() !== '' ? (
                       <Image
                         src={
                           logoPreview.startsWith('data:') || logoPreview.startsWith('blob:')

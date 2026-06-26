@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Mail, Phone, ShoppingBag, Eye, Ban, CheckCircle, X, Calendar, MapPin } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { getAdminCustomers, getAdminCustomerDetail, toggleCustomerStatus } from '@/services/api/admin';
+import { getAdminCustomers, getAdminCustomerDetail, toggleCustomerStatus, updateCustomerLoyalty } from '@/services/api/admin';
 import toast from 'react-hot-toast';
 
 interface Address {
@@ -31,6 +31,8 @@ interface Customer {
   addresses?: Address[];
   totalOrders?: number;
   totalSpent?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: string;
 }
 
 export default function AdminPelangganPage() {
@@ -46,6 +48,18 @@ export default function AdminPelangganPage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [customerDetail, setCustomerDetail] = useState<Customer | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
+  
+  // Loyalty edit states
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [loyaltyTier, setLoyaltyTier] = useState('BRONZE');
+  const [isSavingLoyalty, setIsSavingLoyalty] = useState(false);
+
+  useEffect(() => {
+    if (customerDetail) {
+      setLoyaltyPoints(customerDetail.loyaltyPoints || 0);
+      setLoyaltyTier(customerDetail.loyaltyTier || 'BRONZE');
+    }
+  }, [customerDetail]);
   
   const fetchCustomers = useCallback(async () => {
     setIsLoading(true);
@@ -230,20 +244,83 @@ export default function AdminPelangganPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 flex justify-between items-center">
-            <span className="text-sm text-gray-500">Halaman {page} dari {totalPages} ({total} pelanggan)</span>
-            <div className="flex gap-2">
+          <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
+            <span className="text-gray-500 font-semibold">
+              Halaman {page} dari {totalPages} (Total {total} Pelanggan)
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 disabled={page <= 1}
-                onClick={() => setPage(p => p - 1)}
-                className="btn btn-outline py-1 px-3 text-xs"
+                onClick={() => setPage((p) => p - 1)}
+                className="btn btn-outline py-1 px-2.5 font-bold rounded-lg text-gray-650 border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-[10px] sm:text-xs"
               >
                 Sebelumnya
               </button>
+              
+              {(() => {
+                const pages = [];
+                const maxButtons = 5;
+                let startPage = Math.max(1, page - 2);
+                let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+                
+                if (endPage - startPage + 1 < maxButtons) {
+                  startPage = Math.max(1, endPage - maxButtons + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(i);
+                }
+
+                return (
+                  <div className="flex items-center gap-1">
+                    {startPage > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setPage(1)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border border-gray-200 text-gray-600 hover:bg-gray-50"
+                        >
+                          1
+                        </button>
+                        {startPage > 2 && <span className="text-gray-400 px-0.5 font-bold">...</span>}
+                      </>
+                    )}
+                    
+                    {pages.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPage(p)}
+                        className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                          page === p
+                            ? 'bg-[#0A0A0A] text-white border border-[#0A0A0A]'
+                            : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+
+                    {endPage < totalPages && (
+                      <>
+                        {endPage < totalPages - 1 && <span className="text-gray-400 px-0.5 font-bold">...</span>}
+                        <button
+                          type="button"
+                          onClick={() => setPage(totalPages)}
+                          className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all border border-gray-200 text-gray-600 hover:bg-gray-50"
+                        >
+                          {totalPages}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+
               <button
                 disabled={page >= totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="btn btn-outline py-1 px-3 text-xs"
+                onClick={() => setPage((p) => p + 1)}
+                className="btn btn-outline py-1 px-2.5 font-bold rounded-lg text-gray-650 border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-[10px] sm:text-xs"
               >
                 Selanjutnya
               </button>
@@ -277,7 +354,12 @@ export default function AdminPelangganPage() {
                       {customerDetail.name.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="text-xl font-bold text-gray-900">{customerDetail.name}</h4>
+                      <h4 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        {customerDetail.name}
+                        <span className="text-[9px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                          {customerDetail.loyaltyTier || 'BRONZE'}
+                        </span>
+                      </h4>
                       <p className="text-sm text-gray-500 mt-1">ID Pelanggan: {customerDetail.id}</p>
                       <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" /> Bergabung: {customerDetail.createdAt ? new Date(customerDetail.createdAt).toLocaleDateString('id-ID', {
@@ -306,6 +388,58 @@ export default function AdminPelangganPage() {
                         {formatCurrency(customerDetail.totalSpent || 0)}
                       </p>
                     </div>
+                  </div>
+
+                  {/* Loyalty Program Editor */}
+                  <div className="space-y-3 bg-primary-50/10 p-4 rounded-xl border border-primary-100/65">
+                    <h5 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+                      ⭐ Loyalty Program
+                    </h5>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Poin</label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={loyaltyPoints}
+                          onChange={(e) => setLoyaltyPoints(Number(e.target.value))}
+                          className="input w-full py-1.5 px-3 text-xs font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Tier</label>
+                        <select
+                          value={loyaltyTier}
+                          onChange={(e) => setLoyaltyTier(e.target.value)}
+                          className="input w-full py-1.5 px-3 text-xs font-bold"
+                        >
+                          <option value="BRONZE">BRONZE</option>
+                          <option value="SILVER">SILVER</option>
+                          <option value="GOLD">GOLD</option>
+                          <option value="PLATINUM">PLATINUM</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isSavingLoyalty}
+                      onClick={async () => {
+                        setIsSavingLoyalty(true);
+                        try {
+                          await updateCustomerLoyalty(customerDetail.id, loyaltyPoints, loyaltyTier);
+                          toast.success('Loyalty points & tier berhasil disimpan');
+                          handleViewDetail(customerDetail.id);
+                          fetchCustomers();
+                        } catch {
+                          toast.error('Gagal memperbarui loyalty program');
+                        } finally {
+                          setIsSavingLoyalty(false);
+                        }
+                      }}
+                      className="w-full btn-primary !py-2 text-xs font-bold rounded-lg shadow-sm"
+                    >
+                      {isSavingLoyalty ? 'Menyimpan...' : 'Simpan Loyalty'}
+                    </button>
                   </div>
 
                   {/* Contact Info */}

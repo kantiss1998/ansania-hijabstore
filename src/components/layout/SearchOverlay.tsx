@@ -6,6 +6,7 @@ import { Search, X, Clock } from 'lucide-react';
 import { useUiStore } from '@/stores/uiStore';
 import { ROUTES } from '@/constants/routes';
 import { cn } from '@/lib/utils';
+import { getSearchSuggestions } from '@/services/api/products';
 
 const SUGGESTIONS = ['Hijab', 'Gamis', 'Mukena', 'Flash sale'];
 
@@ -14,6 +15,25 @@ export function SearchOverlay() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isSearchOpen, closeSearch, searchQuery, setSearchQuery } = useUiStore();
   const [history, setHistory] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      try {
+        const list = await getSearchSuggestions(searchQuery);
+        setSuggestions(list);
+      } catch (err) {
+        console.error('Failed to fetch suggestions:', err);
+      }
+    }, 200);
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   useEffect(() => {
     const saved = localStorage.getItem('ansania-search-history');
@@ -105,6 +125,22 @@ export function SearchOverlay() {
               <X className="h-5 w-5" />
             </button>
           </div>
+
+          {suggestions.length > 0 && (
+            <div className="border-b border-primary-50 bg-[#FAFAFA] max-h-60 overflow-y-auto">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => submit(suggestion)}
+                  className="w-full text-left px-4 py-2.5 text-xs font-body text-[#0A0A0A] hover:bg-primary-50/50 hover:text-primary-600 transition-colors flex items-center gap-2 cursor-pointer border-b border-black/[0.03] last:border-b-0"
+                >
+                  <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                  <span>{suggestion}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="px-4 py-3 border-b border-primary-50/50 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400">

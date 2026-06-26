@@ -156,6 +156,11 @@ export const deleteProductImage = async (imageId: number) => {
   return res.data;
 };
 
+export const updateProductImage = async (imageId: number, payload: Record<string, unknown>) => {
+  const res = await api.patch(`/admin/products/images/${imageId}`, payload);
+  return res.data;
+};
+
 // Order Admin
 export const getAdminOrderDetail = async (id: number) => {
   const { data } = await api.get(`/admin/orders/${id}`);
@@ -286,6 +291,11 @@ export const getAdminCustomerDetail = async (id: number) => {
 
 export const toggleCustomerStatus = async (id: number, isActive: boolean) => {
   const res = await api.patch(`/admin/users/${id}/status`, { is_active: isActive });
+  return res.data;
+};
+
+export const updateCustomerLoyalty = async (id: number, loyaltyPoints: number, loyaltyTier: string) => {
+  const res = await api.patch(`/admin/users/${id}/loyalty`, { loyaltyPoints, loyaltyTier });
   return res.data;
 };
 

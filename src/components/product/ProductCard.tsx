@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingCart, Star, Zap, TrendingUp } from 'lucide-react';
-import { FC, useState, useEffect } from 'react';
+import { FC } from 'react';
 import { type ProductListItem } from '@/types/product.types';
 import { ROUTES } from '@/constants/routes';
 import { formatCurrency, getDiscountPercent, cn } from '@/lib/utils';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface Props {
   product: ProductListItem;
@@ -17,52 +18,22 @@ interface Props {
   priority?: boolean;
 }
 
-const getAltImages = (id: number, primary: string, categorySlug: string) => {
-  const gamisPhotos = [
-    'photo-1515347619362-e64e9e42d765',
-    'photo-1609357605129-26f69add5d6e',
-    'photo-1567538096630-e0c55bd6374c',
-    'photo-1573496359142-b8d87734a5a2',
-  ];
-  const hijabPhotos = [
-    'photo-1589810635656-3c28549aa669',
-    'photo-1583391733956-3750e0ff4e8b',
-    'photo-1607990283143-e81e7a2c93ab',
-    'photo-1535632066927-ab7c9ab60908',
-  ];
+const PLACEHOLDER_IMAGE = '/placeholder-product.svg';
 
-  const pool = categorySlug.toLowerCase() === 'gamis' ? gamisPhotos : hijabPhotos;
-  const p1 = pool[id % pool.length];
-  const p2 = pool[(id + 1) % pool.length];
-
-  return [
-    primary,
-    `https://images.unsplash.com/photo-${p1}?q=80&w=800&auto=format&fit=crop`,
-    `https://images.unsplash.com/photo-${p2}?q=80&w=800&auto=format&fit=crop`,
-  ].filter((val, index, self) => self.indexOf(val) === index).slice(0, 3);
+const getProductImage = (thumbnailUrl: string): string => {
+  if (thumbnailUrl && typeof thumbnailUrl === 'string' && thumbnailUrl.trim() !== '') {
+    return thumbnailUrl;
+  }
+  return PLACEHOLDER_IMAGE;
 };
 
 const ProductCard: FC<Props> = ({ product, className }) => {
+  const { locale, t } = useTranslation();
   const { addItem, openDrawer } = useCartStore();
   const { toggle, isWishlisted } = useWishlistStore();
   const wishlisted = isWishlisted(product.id);
 
-  const images = getAltImages(product.id, product.thumbnailUrl, product.category.slug || '');
-  const [imgIndex, setImgIndex] = useState(0);
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-
-    const staggerDelay = (product.id % 4) * 800;
-    const timeoutId = setTimeout(() => {
-      const intervalId = setInterval(() => {
-        setImgIndex((prev) => (prev + 1) % images.length);
-      }, 4000);
-      return () => clearInterval(intervalId);
-    }, staggerDelay);
-
-    return () => clearTimeout(timeoutId);
-  }, [images.length, product.id]);
+  const imageSrc = getProductImage(product.thumbnailUrl);
 
   const discount = product.flashSalePrice
     ? Math.round(((product.price - product.flashSalePrice) / product.price) * 100)
@@ -92,14 +63,19 @@ const ProductCard: FC<Props> = ({ product, className }) => {
       maxQty: 99,
     });
     openDrawer();
-    toast.success('Ditambahkan ke keranjang!', { duration: 1800 });
+    toast.success(locale === 'id' ? 'Ditambahkan ke keranjang!' : 'Added to cart!', { duration: 1800 });
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggle(product.id);
-    toast.success(wishlisted ? 'Dihapus dari wishlist' : 'Masuk wishlist ❤️', { duration: 1400 });
+    toast.success(
+      wishlisted
+        ? (locale === 'id' ? 'Dihapus dari wishlist' : 'Removed from wishlist')
+        : (locale === 'id' ? 'Masuk wishlist ❤️' : 'Added to wishlist ❤️'),
+      { duration: 1400 }
+    );
   };
 
   return (
@@ -114,25 +90,6 @@ const ProductCard: FC<Props> = ({ product, className }) => {
     >
       {/* ── Image Area ── */}
       <div className="relative overflow-hidden bg-[#F8F8F8]" style={{ aspectRatio: '3/4' }}>
-
-        {/* Slideshow indicator lines at the top */}
-        {images.length > 1 && (
-          <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-25 flex gap-1 w-[80%] max-w-[64px]">
-            {images.map((_, idx) => (
-              <div
-                key={idx}
-                className="h-[2px] flex-1 rounded-full overflow-hidden bg-white/30"
-              >
-                <div
-                  className={cn(
-                    "h-full bg-white transition-all duration-300",
-                    idx === imgIndex ? "w-full" : "w-0"
-                  )}
-                />
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Top-left badges */}
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1">
@@ -184,7 +141,7 @@ const ProductCard: FC<Props> = ({ product, className }) => {
         {/* Product image */}
         <div className="absolute inset-0">
           <Image
-            src={images[imgIndex]}
+            src={imageSrc}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 33vw"
@@ -200,7 +157,7 @@ const ProductCard: FC<Props> = ({ product, className }) => {
               className="w-full flex items-center justify-center gap-1.5 h-10 rounded-2xl bg-dark text-white text-[10px] font-display font-bold uppercase tracking-wider hover:bg-primary-600 transition-colors"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
-              + Keranjang
+              + {t('viewCart')}
             </button>
           </div>
         )}
@@ -209,7 +166,7 @@ const ProductCard: FC<Props> = ({ product, className }) => {
         {isOutOfStock && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center z-10">
             <span className="bg-[#0A0A0A]/80 text-white text-[11px] font-display font-black uppercase tracking-wide px-3 py-1.5 rounded-lg">
-              Sold Out
+              {t('stockOut')}
             </span>
           </div>
         )}

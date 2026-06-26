@@ -24,6 +24,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { cn, formatRelativeTime } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import type { Notification } from '@/services/api/notifications';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 const NAV_LINKS = [
   { name: 'Produk', href: ROUTES.PRODUCTS },
@@ -37,6 +38,7 @@ const SCROLL_THRESHOLD = 48;
 export function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const { locale, setLocale, t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu, toggleSearch } = useUiStore();
@@ -45,6 +47,15 @@ export function Navbar() {
   const cartCount = items.length;
 
   const overHero = isHome && !scrolled;
+
+  const navLinks = NAV_LINKS.map(link => {
+    let name = link.name;
+    if (link.href === ROUTES.PRODUCTS) name = t('products');
+    if (link.href === '/kategori') name = t('categories');
+    if (link.href === ROUTES.FLASH_SALE) name = t('flashSale');
+    if (link.href === '/tentang') name = t('about');
+    return { ...link, name };
+  });
 
   // Notifications states
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -147,9 +158,9 @@ export function Navbar() {
             </span>
             <Sparkles className="h-3 w-3 text-accent-lime shrink-0" />
             <span className="font-body font-medium text-white/90 text-center">
-              Gratis ongkir min. <strong className="text-white">Rp 500K</strong>
+              {t('freeShipping')} <strong className="text-white">Rp 500K</strong>
               <span className="mx-1.5 text-white/30">·</span>
-              kode <strong className="font-display text-accent-lime">GRATIS</strong>
+              {t('freeShippingCode')} <strong className="font-display text-accent-lime">GRATIS</strong>
             </span>
           </div>
         </div>
@@ -193,7 +204,7 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-0.5">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
@@ -226,7 +237,7 @@ export function Navbar() {
               )}
             >
               <Search className={cn('h-4 w-4 shrink-0', overHero ? 'text-white' : 'text-primary-500')} />
-              <span className="font-body truncate">Cari hijab, gamis, mukena...</span>
+              <span className="font-body truncate">{t('searchPlaceholder')}</span>
             </button>
           </div>
 
@@ -428,9 +439,38 @@ export function Navbar() {
                 )}
               >
                 <LogIn className="h-3.5 w-3.5" />
-                Masuk
+                {t('login')}
               </Link>
             )}
+
+            {/* Language Switcher */}
+            <div className={cn(
+              "hidden md:flex items-center border rounded-lg px-1.5 py-1 gap-1 text-[9px] font-display font-black tracking-wider ml-1.5 shrink-0",
+              overHero ? "border-white/20 bg-white/5 text-white" : "border-gray-200 bg-gray-50 text-gray-700"
+            )}>
+              <button
+                onClick={() => setLocale('id')}
+                className={cn(
+                  'px-1.5 py-0.5 rounded cursor-pointer transition-colors',
+                  locale === 'id'
+                    ? 'bg-primary-600 text-white font-black'
+                    : 'opacity-60 hover:opacity-100'
+                )}
+              >
+                ID
+              </button>
+              <button
+                onClick={() => setLocale('en')}
+                className={cn(
+                  'px-1.5 py-0.5 rounded cursor-pointer transition-colors',
+                  locale === 'en'
+                    ? 'bg-primary-600 text-white font-black'
+                    : 'opacity-60 hover:opacity-100'
+                )}
+              >
+                EN
+              </button>
+            </div>
 
             <button
               onClick={toggleMobileMenu}
@@ -449,7 +489,7 @@ export function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white/95 backdrop-blur-xl shadow-lg animate-slide-down">
           <div className="container-main py-4 space-y-1 pb-6">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
@@ -498,9 +538,34 @@ export function Navbar() {
                   className="flex w-full items-center justify-center gap-2 btn-pill-brand h-12"
                 >
                   <LogIn className="h-4 w-4" />
-                  Masuk / Daftar
+                  {t('login')} / {t('register')}
                 </Link>
               )}
+            </div>
+
+            {/* Mobile Language Switcher */}
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-[11px] font-display font-bold text-gray-500 uppercase tracking-wider">Language / Bahasa</span>
+              <div className="flex items-center border border-gray-200 bg-gray-50 rounded-lg px-1 py-0.5 gap-1 text-[10px] font-display font-bold">
+                <button
+                  onClick={() => { setLocale('id'); closeMobileMenu(); }}
+                  className={cn(
+                    'px-2.5 py-1 rounded cursor-pointer transition-colors',
+                    locale === 'id' ? 'bg-primary-600 text-white font-black' : 'text-gray-500 hover:text-dark'
+                  )}
+                >
+                  ID
+                </button>
+                <button
+                  onClick={() => { setLocale('en'); closeMobileMenu(); }}
+                  className={cn(
+                    'px-2.5 py-1 rounded cursor-pointer transition-colors',
+                    locale === 'en' ? 'bg-primary-600 text-white font-black' : 'text-gray-500 hover:text-dark'
+                  )}
+                >
+                  EN
+                </button>
+              </div>
             </div>
           </div>
         </div>

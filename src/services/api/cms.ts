@@ -12,7 +12,8 @@ export interface LandingPageContent {
 }
 
 export interface PublicSetting {
-  key: string;
+  key?: string;
+  setting_key?: string;
   value: string;
   group_name?: string;
 }

@@ -1,5 +1,6 @@
 import { api, BACKEND_URL } from '@/lib/api';
 import type { User, Address } from '@/types/user.types';
+import { mapUserToFrontend } from '@/lib/utils';
 
 interface BackendAddress {
   id: number;
@@ -62,7 +63,7 @@ const mapAddressToBackend = (addr: Partial<Address> & Record<string, unknown>): 
 // Implementation
 export const getUserProfile = async (): Promise<User> => {
   const { data } = await api.get('/users/me');
-  return data.data;
+  return mapUserToFrontend(data.data);
 };
 
 export const updateProfile = async (data: Record<string, unknown>) => {

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { addToCart, getCart, updateCartItem, removeCartItem, clearCart as apiClearCart } from '@/services/api/cart';
 import { useAuthStore } from './authStore';
 import toast from 'react-hot-toast';
+import { extractVariantColor } from '@/lib/utils';
 
 export interface CartItem {
   id: number;
@@ -53,6 +54,7 @@ interface ApiCartItem {
   };
   variant: {
     sku: string;
+    name?: string;
     stock: number;
   };
 }
@@ -96,7 +98,7 @@ export const useCartStore = create<CartState>()(
               variantId: apiItem.variant_id ?? apiItem.variantId ?? 0,
               productName: apiItem.product.name,
               productSlug: apiItem.product.slug,
-              variantName: apiItem.variant.sku,
+              variantName: apiItem.variant.name ? extractVariantColor(apiItem.variant.name, apiItem.variant.sku) : apiItem.variant.sku,
               thumbnailUrl: apiItem.product.thumbnail_url,
               price: apiItem.price,
               qty: apiItem.qty ?? apiItem.quantity ?? 1,

@@ -6,12 +6,14 @@ import { Star, MessageSquare, Video, Loader2 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 import type { ProductDetail, Review, ReviewMedia } from '@/types/product.types';
 import { getProductReviews } from '@/services/api/reviews';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface ProductTabsProps {
   product: ProductDetail;
 }
 
 export function ProductTabs({ product }: ProductTabsProps) {
+  const { locale, t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'desc' | 'spec' | 'review'>('desc');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [total, setTotal] = useState(0);
@@ -61,9 +63,9 @@ export function ProductTabs({ product }: ProductTabsProps) {
     <div className="mt-16">
       <div className="flex border-b border-black/[0.06] mb-8 overflow-x-auto scrollbar-hide">
         {([
-          { key: 'desc', label: 'Deskripsi' },
-          { key: 'spec', label: 'Spesifikasi' },
-          { key: 'review', label: `Ulasan (${total || product.totalReviews || 0})` },
+          { key: 'desc', label: t('description') },
+          { key: 'spec', label: t('specification') },
+          { key: 'review', label: `${t('reviews')} (${total || product.totalReviews || 0})` },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -83,7 +85,7 @@ export function ProductTabs({ product }: ProductTabsProps) {
       {activeTab === 'desc' && (
         <div
           className="prose prose-gray max-w-none text-gray-700 font-body text-sm leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: product.description || 'Tidak ada deskripsi.' }}
+          dangerouslySetInnerHTML={{ __html: product.description || t('noDescription') }}
         />
       )}
 
@@ -115,16 +117,16 @@ export function ProductTabs({ product }: ProductTabsProps) {
                   <Star key={i} className={cn('h-4 w-4', i < Math.round(product.ratingAverage || 0) ? 'text-amber-400 fill-amber-400' : 'text-gray-200 fill-gray-200')} />
                 ))}
               </div>
-              <p className="text-[10px] text-gray-400 font-body">dari {total || product.totalReviews || 0} ulasan terverifikasi</p>
+              <p className="text-[10px] text-gray-400 font-body">{t('from')} {total || product.totalReviews || 0} {t('verifiedReviews')}</p>
             </div>
 
             {/* Filters */}
             <div className="md:col-span-2 space-y-4 px-2">
               <div>
-                <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 mb-2">Filter Rating</p>
+                <p className="text-[10px] font-display font-bold uppercase tracking-wider text-gray-400 mb-2">{t('ratingFilter')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { label: 'Semua', value: '' },
+                    { label: t('all'), value: '' },
                     { label: '5 ★', value: '5' },
                     { label: '4 ★', value: '4' },
                     { label: '3 ★', value: '3' },
@@ -156,7 +158,7 @@ export function ProductTabs({ product }: ProductTabsProps) {
                   className="h-3.5 w-3.5 rounded border-gray-300 text-[#0A0A0A] focus:ring-[#0A0A0A]"
                 />
                 <label htmlFor="media-filter" className="text-[11px] font-body text-gray-600 cursor-pointer select-none">
-                  Hanya tampilkan ulasan dengan foto / video
+                  {t('onlyWithMedia')}
                 </label>
               </div>
             </div>
@@ -166,11 +168,11 @@ export function ProductTabs({ product }: ProductTabsProps) {
           <div className="space-y-4">
             {isLoadingReviews ? (
               <div className="py-12 flex justify-center items-center text-gray-400 gap-2 font-body text-xs">
-                <Loader2 className="w-5 h-5 animate-spin text-primary-500" /> Memuat ulasan...
+                <Loader2 className="w-5 h-5 animate-spin text-primary-500" /> {t('loadingReviews')}
               </div>
             ) : reviews.length === 0 ? (
               <div className="py-12 text-center text-gray-400 border border-dashed border-black/[0.08] rounded-3xl font-body text-xs">
-                Tidak ada ulasan yang sesuai dengan filter.
+                {t('noReviews')}
               </div>
             ) : (
               reviews.map((rev: Review) => (
@@ -212,7 +214,7 @@ export function ProductTabs({ product }: ProductTabsProps) {
                                 <Video className="w-5 h-5 opacity-70" />
                               </div>
                             ) : (
-                              <NextImage src={med.url} alt="Review attachment" fill className="object-cover hover:scale-105 transition-transform" unoptimized />
+                              <NextImage src={med.url && typeof med.url === 'string' && med.url.trim() !== '' ? med.url : 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=200&auto=format&fit=crop'} alt="Review attachment" fill className="object-cover hover:scale-105 transition-transform" unoptimized />
                             )}
                           </div>
                         ))}
@@ -224,7 +226,7 @@ export function ProductTabs({ product }: ProductTabsProps) {
                       <div className="mt-4 p-4 bg-gray-50 border border-black/[0.03] rounded-2xl space-y-1">
                         <div className="flex justify-between items-center text-[10px] font-display uppercase tracking-wider">
                           <span className="font-black text-primary-600 flex items-center gap-1">
-                            <MessageSquare className="w-3.5 h-3.5" /> Balasan Dari {rev.reply.admin_name || 'Admin'}
+                            <MessageSquare className="w-3.5 h-3.5" /> {t('replyFrom')} {rev.reply.admin_name || 'Admin'}
                           </span>
                           <span className="text-gray-400 font-body">{formatDate(rev.reply.created_at)}</span>
                         </div>
@@ -240,21 +242,23 @@ export function ProductTabs({ product }: ProductTabsProps) {
           {/* Pagination */}
           {total > 10 && (
             <div className="flex justify-between items-center pt-4 border-t border-black/[0.05] text-xs font-body text-gray-500">
-              <span>Menampilkan {((page - 1) * 10) + 1}-{Math.min(page * 10, total)} dari {total} ulasan</span>
+              <span>
+                {t('showing')} {((page - 1) * 10) + 1}-{Math.min(page * 10, total)} {t('of')} {total} {t('reviews')}
+              </span>
               <div className="flex gap-2">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage(p => p - 1)}
                   className="btn btn-outline py-1 px-3 text-xs"
                 >
-                  Sebelumnya
+                  {t('previous')}
                 </button>
                 <button
                   disabled={page * 10 >= total}
                   onClick={() => setPage(p => p + 1)}
                   className="btn btn-outline py-1 px-3 text-xs"
                 >
-                  Selanjutnya
+                  {t('next')}
                 </button>
               </div>
             </div>
