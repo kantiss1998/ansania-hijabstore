@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, MapPin, ShoppingBag, Heart, LogOut, Bell } from 'lucide-react';
@@ -15,7 +16,14 @@ export default function AccountLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, isAuthenticated } = useAuthStore();
+
+  // Bug #20 fix: auth guard — redirect ke login jika belum authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace(`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [isAuthenticated, pathname, router]);
 
   const handleLogout = () => {
     logout();
@@ -29,6 +37,9 @@ export default function AccountLayout({
     { icon: Bell, label: 'Notifikasi', href: '/akun/notifikasi' },
     { icon: Heart, label: 'Wishlist', href: '/akun/wishlist' },
   ];
+
+  // Jangan render konten sampai status auth diketahui
+  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen py-8 sm:py-12">
@@ -50,7 +61,7 @@ export default function AccountLayout({
                       {user?.email}
                     </p>
                     <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-accent-lime/90 px-2 py-0.5 text-[9px] font-display font-black uppercase tracking-wider text-dark">
-                      ★ {user?.loyaltyTier || 'BRONZE'} Member
+                      ★ {user?.loyaltyTier || 'Member'}
                     </span>
                   </div>
                 </div>

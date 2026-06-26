@@ -49,7 +49,9 @@ export default function AdminVoucherPage() {
     setIsLoading(true);
     try {
       const data = await getAdminVouchers();
-      setVouchers(data || []);
+      const list = Array.isArray(data) ? data : (data?.items || data?.data || []);
+      setVouchers(Array.isArray(list) ? list : []);
+
     } catch {
       toast.error('Gagal memuat daftar voucher');
     } finally {
@@ -103,8 +105,17 @@ export default function AdminVoucherPage() {
       toast.error('Nilai diskon harus lebih besar dari 0');
       return;
     }
+    if (discountType === 'percentage' && Number(value) > 100) {
+      toast.error('Diskon persentase tidak boleh melebihi 100%');
+      return;
+    }
+    if (startsAt && expiresAt && new Date(startsAt) >= new Date(expiresAt)) {
+      toast.error('Tanggal berakhir harus setelah tanggal mulai');
+      return;
+    }
 
     setIsSaving(true);
+
     const payload: Record<string, string | number | boolean | null> = {
       code: code.toUpperCase().trim(),
       description: description || null,

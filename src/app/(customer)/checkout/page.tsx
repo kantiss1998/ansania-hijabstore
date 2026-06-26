@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Truck, Ticket, CreditCard, Loader2, ShieldCheck, ShoppingCartIcon } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
+import { useAuthStore } from '@/stores/authStore';
 import { getUserAddresses } from '@/services/api/users';
 import { getShippingCost } from '@/services/api/shipping';
 import { validateVoucher } from '@/services/api/vouchers';
@@ -25,9 +26,11 @@ interface ShippingOption {
 
 interface AppliedVoucher {
   code: string;
-  type: 'percentage' | 'fixed_amount';
-  value: number;
+  type?: 'percentage' | 'fixed_amount';
+  value?: number;
+  discount_amount?: number;
 }
+
 
 interface WindowWithSnap extends Window {
   snap: {
@@ -51,7 +54,15 @@ interface ApiErrorResponse {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotal, syncCart, clearCart } = useCartStore();
-  
+  const { isAuthenticated } = useAuthStore();
+
+  // Bug #4 fix: auth guard — redirect ke login jika belum authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace(`${ROUTES.AUTH.LOGIN}?redirect=/checkout`);
+    }
+  }, [isAuthenticated, router]);
+
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   
@@ -66,29 +77,31 @@ export default function CheckoutPage() {
 
   const subtotal = getTotal();
   const shippingCost = selectedShipping?.cost || 0;
-  const discountAmount = appliedVoucher ? (appliedVoucher.type === 'percentage' ? (subtotal * appliedVoucher.value / 100) : appliedVoucher.value) : 0;
-  const total = subtotal + shippingCost - discountAmount;
+  const discountAmount = appliedVoucher ? (appliedVoucher.discount_amount ?? (appliedVoucher.type === 'percentage' ? (subtotal * (appliedVoucher.value || 0) / 100) : (appliedVoucher.value || 0))) : 0;
+  const total = (subtotal || 0) + shippingCost - discountAmount;
+
 
   useEffect(() => {
     syncCart();
-    // Load addresses
-    getUserAddresses().then(data => {
-      setAddresses(data);
-      if (data.length > 0) {
-        const primary = data.find((a) => a.isDefault) || data[0];
-        setSelectedAddressId(primary.id);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Bug #6 fix: tambah .catch() agar TypeError tidak throw saat API gagal
+    getUserAddresses()
+      .then(data => {
+        if (!data) return;
+        setAddresses(data);
+        if (data.length > 0) {
+          const primary = data.find((a) => a.isDefault) || data[0];
+          setSelectedAddressId(primary.id);
+        }
+      })
+      .catch(() => toast.error('Gagal memuat alamat pengiriman'));
   }, []);
 
-  // Fetch shipping cost when address changes
+  // Bug #5 fix: tambah `addresses` ke dependency array — cegah stale closure
   useEffect(() => {
-    if (selectedAddressId && items.length > 0) {
+    if (selectedAddressId && items.length > 0 && addresses.length > 0) {
       setIsCalculatingShipping(true);
       const address = addresses.find(a => a.id === selectedAddressId);
-      
-      // Hitung total berat riil dari database (default fallback 300 gram)
+
       const totalWeight = items.reduce((sum, item) => sum + ((item.weight_gram || 300) * item.qty), 0);
 
       getShippingCost({
@@ -97,25 +110,21 @@ export default function CheckoutPage() {
         postal_code: address?.postalCode || '',
         weight: totalWeight
       }).then(data => {
-        // Asumsi data mengembalikan array opsi kurir
         if (data && data.length > 0) {
           setShippingOptions(data);
-          setSelectedShipping(data[0]); // Auto select opsi pertama
+          setSelectedShipping(data[0]);
         } else {
-          // Fallback dummy
           setShippingOptions([{ name: 'JNE Reguler', cost: 15000, etd: '2-3 hari' }]);
           setSelectedShipping({ name: 'JNE Reguler', cost: 15000, etd: '2-3 hari' });
         }
       }).catch(() => {
-        // Fallback jika API gagal
         setShippingOptions([{ name: 'JNE Reguler', cost: 15000, etd: '2-3 hari' }]);
         setSelectedShipping({ name: 'JNE Reguler', cost: 15000, etd: '2-3 hari' });
       }).finally(() => {
         setIsCalculatingShipping(false);
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAddressId, items]);
+  }, [selectedAddressId, items, addresses]);
 
   // Load Midtrans Snap script
   useEffect(() => {

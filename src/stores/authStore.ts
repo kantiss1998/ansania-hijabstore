@@ -67,8 +67,9 @@ export const useAuthStore = create<AuthState>()(
           return true;
         } catch (error) {
           set({ isLoading: false });
-          const err = error as { message?: string };
-          toast.error(err.message || 'Gagal masuk.');
+          // Bug #11 fix: extract pesan error dari Axios response
+          const axiosErr = error as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(axiosErr.response?.data?.message || axiosErr.message || 'Gagal masuk.');
           return false;
         }
       },
@@ -115,8 +116,9 @@ export const useAuthStore = create<AuthState>()(
           return true;
         } catch (error) {
           set({ isLoading: false });
-          const err = error as { message?: string };
-          toast.error(err.message || 'Gagal mendaftar.');
+          // Bug #11 fix: extract pesan error dari Axios response
+          const axiosErr = error as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(axiosErr.response?.data?.message || axiosErr.message || 'Gagal mendaftar.');
           return false;
         }
       },
@@ -163,8 +165,9 @@ export const useAuthStore = create<AuthState>()(
           return true;
         } catch (error) {
           set({ isLoading: false });
-          const err = error as { message?: string };
-          toast.error(err.message || 'Gagal masuk dengan OAuth.');
+          // Bug #11 fix: extract pesan error dari Axios response
+          const axiosErr = error as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(axiosErr.response?.data?.message || axiosErr.message || 'Gagal masuk dengan OAuth.');
           return false;
         }
       },
@@ -179,6 +182,8 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           Cookies.remove('token');
           Cookies.remove('refreshToken');
+          // Bug #4 fix: bersihkan persist state di localStorage agar tidak ada data user tersisa
+          useAuthStore.persist.clearStorage();
           set({ user: null, isAuthenticated: false });
           toast.success('Berhasil keluar');
         }

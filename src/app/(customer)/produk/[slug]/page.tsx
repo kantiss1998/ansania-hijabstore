@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 import { Shield, Truck, RefreshCw, ChevronRight, BadgeCheck, Star } from 'lucide-react';
+import { cache } from 'react';
 import { ROUTES } from '@/constants/routes';
 import { formatCurrency, getDiscountPercent, cn } from '@/lib/utils';
 import { getProductBySlug } from '@/services/api/products';
@@ -11,13 +12,17 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { AddToCartSection } from '@/components/product/AddToCartSection';
 import { ProductTabs } from '@/components/product/ProductTabs';
 
+const getCachedProduct = cache(async (slug: string) => {
+  return getProductBySlug(slug);
+});
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
-  const product = await getProductBySlug(params.slug);
+  const product = await getCachedProduct(params.slug);
 
   if (!product) {
     return {
@@ -38,7 +43,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage(props: Props) {
   const params = await props.params;
-  const product = await getProductBySlug(params.slug);
+  const product = await getCachedProduct(params.slug);
+
 
   if (!product) {
     notFound();

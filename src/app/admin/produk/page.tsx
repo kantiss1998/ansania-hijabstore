@@ -27,8 +27,17 @@ export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -42,23 +51,26 @@ export default function AdminProductsPage() {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      // getAdminProducts accepts params: { limit, offset, is_active, ... }
       const offset = (page - 1) * limit;
       const response = await getAdminProducts({
         limit,
         offset,
-        category_id: categoryFilter || undefined
+        category_id: categoryFilter || undefined,
+        q: debouncedSearch || undefined
       });
       
       const payload = response.data || response;
-      setProducts(payload.items || payload || []);
-      setTotal(response.meta?.total || payload.total || (payload.length ?? 0));
+      const productList = Array.isArray(payload) ? payload : (payload.data || payload.items || []);
+      setProducts(Array.isArray(productList) ? productList : []);
+      setTotal(response.meta?.total || payload.total || (productList.length ?? 0));
+
     } catch {
       toast.error('Gagal memuat katalog produk');
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, categoryFilter]);
+  }, [page, limit, categoryFilter, debouncedSearch]);
+
 
   useEffect(() => {
     fetchCategories();
@@ -78,11 +90,6 @@ export default function AdminProductsPage() {
       toast.error('Gagal menghapus produk');
     }
   };
-
-  // Local filter for search (filtering by product name)
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const totalPages = Math.ceil(total / limit);
 
@@ -145,7 +152,7 @@ export default function AdminProductsPage() {
           <div className="py-16 flex justify-center items-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
           </div>
-        ) : filteredProducts.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
             Tidak ada produk ditemukan.
           </div>
@@ -161,7 +168,8 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
+
                   <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">

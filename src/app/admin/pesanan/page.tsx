@@ -22,42 +22,92 @@ export default function AdminPesananPage() {
   const [limit] = useState(10);
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
-      // getAdminOrders takes params object
       const response = await getAdminOrders({
         page,
         limit,
-        status: statusFilter || undefined
+        status: statusFilter || undefined,
+        search: debouncedSearch || undefined
       });
-      // The API response helper maps to { data: [...], total } or direct array
       const payload = response.data || response;
-      setOrders(payload.items || payload || []);
-      setTotal(response.meta?.total || payload.total || (payload.length ?? 0));
+      const orderList = Array.isArray(payload) ? payload : (payload.data || payload.items || []);
+      setOrders(Array.isArray(orderList) ? orderList : []);
+      setTotal(response.meta?.total || payload.total || (orderList.length ?? 0));
+
     } catch {
       toast.error('Gagal memuat daftar pesanan');
     } finally {
       setIsLoading(false);
     }
-  }, [page, limit, statusFilter]);
+  }, [page, limit, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
 
   const handleExportData = () => {
-    toast.success('Data pesanan berhasil diekspor (CSV)');
+    if (orders.length === 0) {
+      toast.error('Tidak ada data pesanan untuk diekspor');
+      return;
+    }
+
+    // Rahasia Excel Indonesia rapi: Gunakan BOM UTF-8 (\uFEFF) & pemisah Titik Koma (;)
+    const BOM = '\uFEFF';
+    const separator = ';';
+    const headers = ['No.', 'ID Pesanan', 'Nomor Invoice', 'Tanggal & Waktu Pesanan', 'Total Tagihan (Rp)', 'Status Terkini'];
+
+    const rows = orders.map((o, idx) => {
+      const dateObj = new Date(o.created_at);
+      const formattedDate = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) + ' ' + dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      
+      const statusIndo = o.status === 'pending_payment' ? 'Menunggu Pembayaran' :
+                         o.status === 'processing' ? 'Sedang Diproses' :
+                         o.status === 'shipped' ? 'Sedang Dikirim' :
+                         o.status === 'delivered' ? 'Selesai (Diterima)' :
+                         o.status === 'cancelled' ? 'Dibatalkan' : o.status;
+
+      return [
+        idx + 1,
+        o.id,
+        `"${o.order_number}"`,
+        `"${formattedDate}"`,
+        o.total_amount || 0,
+        `"${statusIndo}"`
+      ].join(separator);
+    });
+
+    const csvString = BOM + [headers.join(separator), ...rows].join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Laporan-Pesanan-Ansania-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success('Laporan CSV terstruktur berhasil diunduh!');
   };
 
-  // Local filter for search (e.g. searching order number)
-  const filteredOrders = orders.filter((order) =>
-    order.order_number.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+
 
   const totalPages = Math.ceil(total / limit);
+
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -159,7 +209,7 @@ export default function AdminPesananPage() {
           <div className="py-16 flex justify-center items-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
             Tidak ada transaksi pesanan ditemukan.
           </div>
@@ -176,7 +226,8 @@ export default function AdminPesananPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredOrders.map((order) => (
+                {orders.map((order) => (
+
                   <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-gray-900 font-mono text-xs">{order.order_number}</td>
                     <td className="px-6 py-4 text-gray-500 font-semibold text-xs whitespace-nowrap">
